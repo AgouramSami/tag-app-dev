@@ -1,0 +1,141 @@
+.cloturer-demande-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: rgba(0, 50, 85, 0.17);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-title {
+  text-align: left;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #002b45;
+  margin-bottom: 2rem;
+}
+
+.form-title::after {
+  content: "";
+  display: block;
+  width: 80px;
+  height: 3px;
+  background-color: #f3633f;
+  margin-top: 5px;
+}
+
+.object-demande {
+  background-color: #f9f9f9;
+  font-weight: normal;
+  color: #002b45;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  font-size: 14px;
+}
+
+.object-demande strong {
+  color: #04416d;
+}
+
+.object-demande p {
+  margin-top: 0.5rem;
+  font-size: 14px;
+}
+
+.form-group {
+  margin-bottom: 2rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #002b45;
+  margin-bottom: 1rem;
+}
+
+.rating-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stars {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.stars i {
+  font-size: 2rem;
+  color: #dee2e6;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.stars i.active {
+  color: #f3633f;
+}
+
+.rating-info {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+.button-container {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.submit-btn,
+.cancel-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  flex: 1;
+}
+
+.submit-btn {
+  background: #f3633f;
+  border: none;
+  color: white;
+}
+
+.submit-btn:hover {
+  background: #e65a2c;
+}
+
+.cancel-btn {
+  background: #fff;
+  border: 1px solid #ced4da;
+  color: #666;
+}
+
+.cancel-btn:hover {
+  background: #f8f9fa;
+  border-color: #b1bbc4;
+}
+
+@media (max-width: 768px) {
+  .cloturer-demande-container {
+    padding: 1rem;
+  }
+
+  .form-title {
+    font-size: 1.5rem;
+  }
+
+  .stars i {
+    font-size: 1.5rem;
+  }
+
+  .button-container {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,121 @@
+/* 📌 Conteneur principal */
+.dashboard-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 📌 Titre et sous-titre */
+.dashboard-title {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.dashboard-subtitle {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* 📌 Style de la grille */
+.dashboard-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+/* 📌 Style des cartes */
+.dashboard-card {
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  padding: 20px;
+  width: calc(50% - 20px);
+  min-width: 250px;
+  text-align: center;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 📌 Style du titre des blocs */
+.dashboard-card h2 {
+  color: #04416d;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+/* 📌 Texte des blocs */
+.dashboard-card p {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+/* 📌 Boutons */
+.dashboard-btn {
+  background-color: #f3633f;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dashboard-btn:hover {
+  background-color: #d55234;
+}
+
+/* 📌 Bouton de déconnexion */
+.logout-btn {
+  margin-top: 20px;
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.logout-btn:hover {
+  background-color: darkred;
+}
+
+/* 📌 Responsive : Passe à 1 colonne sur mobile */
+@media screen and (max-width: 768px) {
+  .dashboard-card {
+    width: 100%;
+  }
+}
+
+.dashboard-section {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1.5rem;
+  color: #34495e;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #eee;
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.2rem;
+  }
+}

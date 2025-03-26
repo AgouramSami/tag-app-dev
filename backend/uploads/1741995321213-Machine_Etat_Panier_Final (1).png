@@ -1,0 +1,18 @@
+digraph Machine_Etat_Panier {
+	rankdir=LR size=10
+	Debut [label="" shape=point]
+	Vide [label="🛒 Panier Vide" shape=ellipse]
+	Rempli [label="📦 Panier Rempli" shape=ellipse]
+	Valide [label="✅ Panier Validé" shape=ellipse]
+	Commande [label="📨 Commande Passée" shape=ellipse]
+	Annule [label="❌ Panier Annulé" shape=ellipse]
+	Fin [label="" fillcolor=black shape=point style=filled]
+	Debut -> Vide
+	Vide -> Rempli [label="Ajout d'un produit"]
+	Rempli -> Vide [label="Suppression de tous les produits"]
+	Rempli -> Valide [label="Validation du panier
+(Client inscrit uniquement)"]
+	Valide -> Commande [label="Commande finalisée"]
+	Rempli -> Annule [label="Annulation du panier"]
+	Commande -> Fin
+}

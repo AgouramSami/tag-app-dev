@@ -1,0 +1,373 @@
+/* 📌 Base styles (Mobile First) */
+html,
+body {
+  background-color: #fff;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+.mes-demandes-container {
+  padding: 1rem;
+  max-width: 100%;
+  margin: 50px auto;
+}
+
+/* Header */
+.mes-demandes-header {
+  margin-bottom: 2rem;
+}
+
+.mes-demandes-title {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.mes-demandes-title::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 3px;
+  background-color: #ff6633;
+  margin-top: 5px;
+}
+
+/* Filters */
+.mes-demandes-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.filter-select{
+  width: 50%;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.search-bar:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: #ff6b35;
+}
+
+/* Grid */
+.mes-demandes-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+/* Detail view */
+.mes-demande-detail {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 1.5rem;
+}
+
+.demande-content {
+  margin-top: 1rem;
+}
+
+.demande-content h2 {
+  color: #002b45;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #ff6633;
+}
+
+/* Messages */
+.messages-section {
+  margin-top: 1.5rem;
+}
+
+.message {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.message-reponse {
+  border-left: 4px solid #ff6633;
+}
+
+.message-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Rating modal */
+.rating-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.rating-modal-content {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Loading and error states */
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.error {
+  text-align: center;
+  padding: 1rem;
+  color: #dc3545;
+  background-color: #f8d7da;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+/* Modal */
+.mes-demande-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.mes-demande-modal-content {
+  position: relative;
+  text-align: left;
+  color: #003255;
+  background: white;
+  padding: 20px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+.mes-demande-modal-content h2 {
+  text-align: center;
+}
+
+.mes-demande-modal-content p {
+  color: #002b45;
+}
+
+.mes-demande-close-modal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.nouvelle-reponse-badge {
+  background-color: #ff6633;
+  color: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  position: absolute;
+  top: -5px;
+  right: -5px;
+}
+
+/* Formulaire de réponse */
+.reponse-form-section {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.reponse-form-section h3 {
+  color: #002b45;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+  text-align: left;
+}
+
+.reponse-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: #002b45;
+  font-weight: 500;
+  text-align: left;
+}
+
+.form-group textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 1rem;
+  resize: vertical;
+  text-align: left;
+}
+
+.form-group input[type="file"] {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+/* Section de clôture */
+.cloture-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #dee2e6;
+  text-align: center;
+}
+
+.mes-demande-btn-cloturer {
+  background-color: #28a745;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  width: 100%;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.mes-demande-btn-cloturer:hover {
+  background-color: #218838;
+}
+
+/* Style pour les étoiles */
+.rating-stars i.star-filled,
+.rating-stars i.star-filled ~ i {
+  color: #ffc107;
+}
+
+@keyframes starPop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.star-filled {
+  animation: starPop 0.2s ease;
+}
+
+/* 📱 Tablet (768px et plus) */
+@media (min-width: 768px) {
+  .mes-demandes-container {
+    padding: 2rem;
+    max-width: 1200px;
+  }
+
+  .mes-demandes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mes-demandes-filters {
+    flex-direction: row;
+  }
+
+  .search-bar,
+  .filter-select {
+    flex: 1;
+  }
+
+  .mes-demande-modal-content {
+    width: 90%;
+    max-width: 600px;
+  }
+
+  .mes-demande-btn-cloturer {
+    width: auto;
+  }
+}
+
+/* 💻 Desktop (1024px et plus) */
+@media (min-width: 1024px) {
+  .mes-demandes-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .mes-demandes-title {
+    font-size: 1.8rem;
+  }
+
+  .mes-demande-modal-content {
+    max-width: 800px;
+  }
+}

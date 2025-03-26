@@ -1,0 +1,156 @@
+.card-demande {
+  background: rgba(0, 50, 85, 0.17);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-demande-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+.demande-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.demande-info span {
+  font-size: 14px;
+}
+
+.demande-info span:first-child {
+  color: #002b45;
+  font-weight: 500;
+}
+
+.demande-info .date {
+  color: #666;
+  font-weight: normal;
+}
+
+.card-demande-content {
+  margin-bottom: 16px;
+}
+
+.info-group {
+  margin: 0px;
+  text-align: left;
+  margin-bottom: 12px;
+}
+
+.info-group:last-child {
+  margin-bottom: 0;
+}
+
+.info-group label {
+  color: #002b45;
+  font-weight: 600;
+  font-size: 14px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.info-group p {
+  color: #333;
+  font-size: 14px;
+  margin: 0;
+}
+
+.card-demande-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-consulter,
+.btn-repondre {
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.btn-consulter {
+  background: #F3633F;
+  color: white;
+  width: 100%;
+  text-align: center;
+}
+
+.btn-consulter:hover {
+  background: #e65a2c;
+}
+
+.btn-repondre {
+  background-color: #F3633F;
+  color: white;
+}
+
+.btn-repondre:hover {
+  background-color: #d55234;
+}
+
+.statut-badge {
+  font-size: 14px;
+  color: #666;
+  margin-top: 8px;
+}
+
+/* Status styles */
+.en-attente {
+  color: #856404;
+}
+
+.en-cours {
+  color: #004085;
+}
+
+.traitée {
+  color: #155724;
+}
+
+.archivée {
+  color: #6c757d;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .card-demande {
+    padding: 12px;
+  }
+
+  .card-demande-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .statut-badge {
+    align-self: flex-start;
+  }
+
+  .card-demande-actions {
+    flex-direction: column;
+  }
+
+  .btn-consulter,
+  .btn-repondre {
+    width: 100%;
+  }
+}
+
+/* Responsive */
+@media (min-width: 640px) {
+  .btn-consulter {
+    width: auto;
+  }
+}

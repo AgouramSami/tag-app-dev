@@ -1,0 +1,54 @@
+.rgpd-notice {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+}
+
+.rgpd-notice h3 {
+  color: #002b45;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.rgpd-notice p {
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.rgpd-notice ul {
+  list-style: none;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.rgpd-notice ul li {
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.rgpd-notice ul li::before {
+  content: "•";
+  color: #ff6633;
+  font-weight: bold;
+  position: absolute;
+  left: -1rem;
+}
+
+.rgpd-contact {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.rgpd-contact a {
+  color: #ff6633;
+  text-decoration: none;
+}
+
+.rgpd-contact a:hover {
+  text-decoration: underline;
+}
