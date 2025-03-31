@@ -1,12 +1,12 @@
 /* 🌍 Conteneur principal */
-.form-container {
+.tag-form-container {
   padding: 50px 20px 200px 20px;
   max-width: 500px;
   margin: auto;
 }
 
 /* 🏷️ Titres */
-.form-title {
+.tag-form-title {
   text-align: left;
   font-size: 22px;
   font-weight: bold;
@@ -14,7 +14,7 @@
   margin-bottom: 40px;
 }
 
-.form-title::after {
+.tag-form-title::after {
   content: "";
   display: block;
   width: 80px;
@@ -24,13 +24,13 @@
 }
 
 /* 🎯 Champs du formulaire */
-.form-group {
+.tag-form-group {
   display: flex;
   flex-direction: column;
   margin-bottom: 15px;
 }
 
-.form-label {
+.tag-form-label {
   font-weight: 500;
   font-size: 14px;
   color: #002b45;
@@ -38,9 +38,9 @@
   text-align: left;
 }
 
-.form-select,
-.form-textarea,
-.form-input {
+.tag-form-select,
+.tag-form-textarea,
+.tag-form-input {
   width: 100%;
   padding: 10px;
   border: none;
@@ -48,14 +48,14 @@
   font-size: 14px;
   background-color: #ebf0f5;
 }
-.form-textarea:focus,
-.form-select:focus {
+.tag-form-textarea:focus,
+.tag-form-select:focus {
   border-bottom: 2px solid #ff6633;
   outline: none;
 }
 
 /* 🎯 Objet de la demande */
-.object-demande {
+.tag-object-demande {
   background-color: #f9f9f9;
   font-weight: normal;
   color: #002b45;
@@ -64,7 +64,7 @@
 }
 
 /* 📖 FAQ dynamique */
-.faq-suggestions {
+.tag-faq-suggestions {
   background-color: #f5f5f5;
   border-left: 3px solid #04416d;
   padding: 10px;
@@ -73,14 +73,14 @@
 }
 
 /* ✏️ Description */
-.form-textarea {
+.tag-form-textarea {
   font-family: "Atkinson Hyperlegible Next", serif;
   min-height: 150px;
   resize: vertical;
 }
 
 /* 📎 Ajout de pièce jointe */
-.file-upload {
+.tag-file-upload {
   display: flex;
   align-items: center;
   background-color: #ffffff;
@@ -90,31 +90,31 @@
   cursor: pointer;
 }
 
-.file-input {
+.tag-file-input {
   display: none;
 }
 
-.file-label {
+.tag-file-label {
   flex: 1;
   color: #acacac;
   font-size: 14px;
 }
 
-.file-button svg {
+.tag-file-button svg {
   width: 24px;
   height: 24px;
   fill: #04416d;
 }
 
 /* 📌 Boutons */
-.button-container {
+.tag-button-container {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-top: 20px;
 }
 
-.submit-btn {
+.tag-submit-btn {
   width: 100%;
   background-color: #ff6633;
   color: white;
@@ -125,7 +125,7 @@
   text-align: center;
 }
 
-.annuler-btn {
+.tag-annuler-btn {
   width: 100%;
   background-color: #04416d;
   color: white;
@@ -138,52 +138,52 @@
 
 /* 🖥️ Desktop : Ajustements */
 @media (min-width: 768px) {
-  .form-container {
+  .tag-form-container {
     max-width: 700px;
     padding: 80px 40px 100px;
   }
 
-  .button-container {
+  .tag-button-container {
     flex-direction: row;
     justify-content: center;
   }
 
-  .submit-btn,
-  .cancel-btn {
+  .tag-submit-btn,
+  .tag-cancel-btn {
     width: 50%;
   }
 }
 
-.error-message {
+.tag-error-message {
   color: red;
   font-weight: bold;
   text-align: center;
 }
 
-.success-message {
+.tag-success-message {
   color: green;
   font-weight: bold;
   text-align: center;
 }
 
-.file-info {
+.tag-file-info {
   font-size: 12px;
   color: #666;
   margin-top: 5px;
 }
 
-ul {
+.tag-ul {
   list-style: none;
   padding: 0;
 }
 
-ul li {
+.tag-ul li {
   font-size: 14px;
   color: #04416d;
   margin: 5px 0;
 }
 
-.file-button {
+.tag-file-button {
   background-color: #002b4520;
   width: 10%;
   color: white;
@@ -195,24 +195,24 @@ ul li {
   margin-top: 10px;
 }
 
-.file-button:hover {
+.tag-file-button:hover {
   background-color: #002b4540;
 }
 
-.faq-item {
+.tag-faq-item {
   font-size: 12px;
   color: #666;
   margin: 5px 0;
   cursor: pointer;
 }
 
-.faq-item:hover {
+.tag-faq-item:hover {
   color: #002b45;
   text-decoration: underline;
 }
 
 /* 📖 Suggestions FAQ dynamiques */
-.faq-suggestions {
+.tag-faq-suggestions {
   background-color: #f5f5f5;
   border-left: 3px solid #ff6633;
   padding: 10px 20px;
@@ -221,137 +221,123 @@ ul li {
   border-radius: 0px;
 }
 
-.faq-suggestions-title {
+.tag-faq-suggestions-title {
   font-weight: bold;
   font-size: 14px;
   color: #003255;
   margin-bottom: 5px;
 }
 
-.faq-item {
-  font-size: 12px;
-  color: #666;
-  margin: 5px 0;
-  cursor: pointer;
-}
-
-.faq-item:hover {
-  color: #002b45;
-  text-decoration: underline;
-}
-
 /* 📎 Bloc des pièces jointes */
-.pieces-jointes-container {
+.tag-pieces-jointes-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   margin-top: 10px;
   height: 50px;
-  gap: 10px;
 }
 
-/* 📎 Nom fichier */
-.pieces-jointes-label {
+.tag-pieces-jointes-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  margin-right: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+.tag-piece-jointe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f5f5f5;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #002b45;
+}
+
+.tag-pieces-jointes-ajout {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
-  font-size: 14px;
-  color: #003255;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  background-color: #ebf0f5;
-  padding: 8px 12px;
-  height: 100%;
-  border-bottom: 2px solid #003255;
 }
 
-/* 📎 Bouton d'ajout de fichier  */
-.pieces-jointes-ajout {
-  flex-shrink: 0;
-  cursor: pointer;
-  border: none;
-  background: none;
-  background-color: #ebf0f5;
-  padding: 8px 20px;
-  height: 100%;
-  border-bottom: 2px solid #003255;
-}
-
-.pieces-jointes-ajout svg {
+.tag-pieces-jointes-ajout svg {
   width: 24px;
   height: 24px;
-  fill: #003255;
+  fill: #04416d;
 }
 
-.pieces-jointes-ajout:hover {
-  background-color: #002b452e;
+.tag-pieces-jointes-ajout:hover {
+  opacity: 0.8;
 }
 
-/* Bouton de suppression */
-.pieces-jointes-supprimer {
+.tag-pieces-jointes-supprimer {
   background: none;
   border: none;
-  color: #ff6633;
   cursor: pointer;
+  padding: 0 5px;
+  color: #ff6633;
   font-size: 14px;
-  margin-left: 10px;
 }
 
-.pieces-jointes-supprimer:hover {
-  color: #cc4d26;
+.tag-pieces-jointes-supprimer:hover {
+  color: #ff4411;
 }
 
-/* CSS pour la modale de confirmation de création de demande */
-
-.modale-creer-demande {
+/* Modal de confirmation */
+.tag-modale-creer-demande {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: #001e33f7;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
 }
 
-.modale-creer-demande-card {
-}
-
-.modale-creer-demande .titre-modale {
-  max-width: 800px;
-  color: white;
-  font-size: 18px;
+.tag-modale-creer-demande-card {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
   text-align: center;
-  white-space: nowrap;
+  max-width: 400px;
+  width: 90%;
 }
 
-.modale-creer-demande .sous-titre-modale {
-  width: 100%;
-  max-width: 800px;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
-  text-align: center;
+.tag-modale-creer-demande .titre-modale {
+  font-size: 24px;
+  color: #002b45;
+  margin-bottom: 10px;
 }
 
-.btn-retour-accueil {
-  margin-top: 40px;
+.tag-modale-creer-demande .sous-titre-modale {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.tag-btn-retour-accueil {
   background-color: #ff6633;
   color: white;
+  padding: 12px 24px;
   border: none;
-  padding: 10px 20px;
+  border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
+  transition: background-color 0.3s;
 }
 
-.btn-retour-accueil:hover {
-  background-color: #e55a2c;
+.tag-btn-retour-accueil:hover {
+  background-color: #ff4411;
 }

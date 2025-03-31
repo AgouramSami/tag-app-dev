@@ -1,80 +1,101 @@
 /* 📌 Barre de navigation */
-.header {
+.tag-header {
   position: sticky;
   top: 0;
   width: 100%;
   background-color: #04416d;
-  padding: 20px 0;
+  padding: 15px 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 }
 
 /* 📌 Navigation */
-.nav {
+.tag-nav {
   display: flex;
   justify-content: center;
   gap: 0px;
-  max-width: 600px;
+  max-width: 1200px;
   margin: auto;
+  padding: 0 20px;
 }
 
 /* 📌 Liens de navigation */
-.nav-link {
-  width: 20%;
+.tag-nav-link {
   display: flex;
-  flex-direction: column;
   align-items: center;
   color: white;
   text-decoration: none;
-  font-size: 14px;
-  font-weight: bold;
-  padding: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 10px 20px;
   transition: all 0.3s ease-in-out;
   position: relative;
+  border-radius: 6px;
+  gap: 8px;
 }
 
 /* 📌 Icônes */
-.nav-link span {
-  font-size: 20px;
-  margin-bottom: 4px;
+.tag-nav-link i {
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
 }
 
 /* 📌 Effet au survol */
-.nav-link:hover {
+.tag-nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
 }
 
 /* 📌 Onglet actif */
-.nav-link.active {
+.tag-nav-link.active {
   color: #f3633f;
-  transform: scale(1.1);
-  background-color: #04416d;
+  background-color: rgba(243, 99, 63, 0.1);
 }
 
 /* 📌 Animation de soulignement */
-.nav-link.active::after {
+.tag-nav-link.active::after {
   content: "";
   position: absolute;
-  bottom: 0px;
-  width: 100%;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
   height: 3px;
   background-color: #f3633f;
-  transition: width 0.3s ease-in-out, left 0.3s ease-in-out;
+  transition: width 0.3s ease-in-out;
 }
 
 /* 📌 Mobile : Fixe le menu en bas */
 @media screen and (max-width: 768px) {
-  .header {
+  .tag-header {
     position: fixed;
     bottom: 0;
     top: auto;
     width: 100%;
     box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
   }
 
-  .nav {
+  .tag-nav {
     justify-content: space-around;
     width: 100%;
-    padding: 10px 0;
+    padding: 0;
+  }
+
+  .tag-nav-link {
+    flex-direction: column;
+    font-size: 12px;
+    padding: 8px;
+    width: 20%;
+    gap: 4px;
+  }
+
+  .tag-nav-link i {
+    font-size: 20px;
+  }
+
+  .tag-nav-link.active::after {
+    display: none;
   }
 }

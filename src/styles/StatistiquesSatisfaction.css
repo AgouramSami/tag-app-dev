@@ -1,44 +1,44 @@
-.stats-container {
+.tag-stats-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
 
-.stats-title {
+.tag-stats-title {
   text-align: center;
   color: #002b45;
   font-size: 2rem;
   margin-bottom: 2rem;
 }
 
-.stats-grid {
+.tag-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
 
-.stats-card {
+.tag-stats-card {
   background: rgba(0, 50, 85, 0.17);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.strate-title {
+.tag-strate-title {
   color: #002b45;
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   text-align: center;
 }
 
-.stats-content {
+.tag-stats-content {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
-.stats-item {
+.tag-stats-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -47,36 +47,36 @@
   border-radius: 6px;
 }
 
-.stats-label {
+.tag-stats-label {
   color: #666;
   font-size: 0.9rem;
 }
 
-.stats-value {
+.tag-stats-value {
   color: #002b45;
   font-weight: 600;
   font-size: 1.1rem;
 }
 
-.stars-distribution {
+.tag-stars-distribution {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.star-bar {
+.tag-star-bar {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.star-label {
+.tag-star-label {
   min-width: 80px;
   color: #666;
   font-size: 0.9rem;
 }
 
-.bar-container {
+.tag-bar-container {
   flex: 1;
   height: 20px;
   background: #f8f9fa;
@@ -84,28 +84,28 @@
   overflow: hidden;
 }
 
-.bar {
+.tag-bar {
   height: 100%;
   background: #f3633f;
   border-radius: 10px;
   transition: width 0.3s ease;
 }
 
-.star-count {
+.tag-star-count {
   min-width: 40px;
   text-align: right;
   color: #002b45;
   font-weight: 600;
 }
 
-.loading {
+.tag-loading {
   text-align: center;
   padding: 2rem;
   color: #666;
   font-size: 1.1rem;
 }
 
-.error {
+.tag-error {
   text-align: center;
   padding: 2rem;
   color: #dc3545;
@@ -117,36 +117,36 @@
 }
 
 @media (max-width: 768px) {
-  .stats-container {
+  .tag-stats-container {
     padding: 1rem;
   }
 
-  .stats-title {
+  .tag-stats-title {
     font-size: 1.5rem;
   }
 
-  .stats-grid {
+  .tag-stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .stats-card {
+  .tag-stats-card {
     padding: 1rem;
   }
 
-  .strate-title {
+  .tag-strate-title {
     font-size: 1.2rem;
   }
 
-  .star-bar {
+  .tag-star-bar {
     gap: 0.5rem;
   }
 
-  .star-label {
+  .tag-star-label {
     min-width: 60px;
     font-size: 0.8rem;
   }
 
-  .star-count {
+  .tag-star-count {
     min-width: 30px;
     font-size: 0.9rem;
   }

@@ -36,37 +36,37 @@ const StatistiquesSatisfaction = () => {
   }, []);
 
   if (loading) {
-    return <div className="loading">Chargement des statistiques...</div>;
+    return <div className="tag-loading">Chargement des statistiques...</div>;
   }
 
   if (error) {
-    return <div className="error">{error}</div>;
+    return <div className="tag-error">{error}</div>;
   }
 
   return (
-    <div className="stats-container">
-      <h2 className="stats-title">
+    <div className="tag-stats-container">
+      <h2 className="tag-stats-title">
         Statistiques de satisfaction par strate de commune
       </h2>
 
-      <div className="stats-grid">
+      <div className="tag-stats-grid">
         {statistiques.map((stat) => (
-          <div key={stat.strate._id} className="stats-card">
-            <h3 className="strate-title">{stat.strate.nom}</h3>
-            <div className="stats-content">
-              <div className="stats-item">
-                <span className="stats-label">Total des demandes :</span>
-                <span className="stats-value">{stat.totalDemandes}</span>
+          <div key={stat.strate._id} className="tag-stats-card">
+            <h3 className="tag-strate-title">{stat.strate.nom}</h3>
+            <div className="tag-stats-content">
+              <div className="tag-stats-item">
+                <span className="tag-stats-label">Total des demandes :</span>
+                <span className="tag-stats-value">{stat.totalDemandes}</span>
               </div>
-              <div className="stats-item">
-                <span className="stats-label">Note moyenne :</span>
-                <span className="stats-value">
+              <div className="tag-stats-item">
+                <span className="tag-stats-label">Note moyenne :</span>
+                <span className="tag-stats-value">
                   {stat.noteMoyenne.toFixed(1)} / 5
                 </span>
               </div>
-              <div className="stats-item">
-                <span className="stats-label">Taux de satisfaction :</span>
-                <span className="stats-value">
+              <div className="tag-stats-item">
+                <span className="tag-stats-label">Taux de satisfaction :</span>
+                <span className="tag-stats-value">
                   {(
                     ((stat.distribution[4] + stat.distribution[5]) /
                       stat.totalDemandes) *
@@ -75,14 +75,14 @@ const StatistiquesSatisfaction = () => {
                   %
                 </span>
               </div>
-              <div className="star-distribution">
+              <div className="tag-stars-distribution">
                 <h4>Distribution des notes :</h4>
                 {[1, 2, 3, 4, 5].map((note) => (
-                  <div key={note} className="star-row">
-                    <span className="star-label">
+                  <div key={note} className="tag-star-bar">
+                    <span className="tag-star-label">
                       {note} étoile{note > 1 ? "s" : ""} :
                     </span>
-                    <span className="star-value">
+                    <span className="tag-star-count">
                       {stat.distribution[note] || 0}
                     </span>
                   </div>

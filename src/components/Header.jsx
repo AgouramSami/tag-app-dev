@@ -31,25 +31,29 @@ const Header = () => {
   };
 
   return (
-    <header className="header">
+    <header className="tag-header">
       <div className="logo-site"></div>
-      <nav className="nav">
+      <nav className="tag-nav">
         {/* Liens communs à tous les utilisateurs */}
-        <NavLink to={getHomeLink()} className="nav-link" end>
-          Accueil
+        <NavLink to={getHomeLink()} className="tag-nav-link" end>
+          <i className="fas fa-home"></i>
+          <span>Accueil</span>
         </NavLink>
-        <NavLink to="/profil" className="nav-link">
-          Profil
+        <NavLink to="/profil" className="tag-nav-link">
+          <i className="fas fa-user"></i>
+          <span>Profil</span>
         </NavLink>
 
         {/* Liens spécifiques aux utilisateurs normaux */}
         {user?.permissions === "user" && (
           <>
-            <NavLink to="/creer-demande" className="nav-link">
-              Créer
+            <NavLink to="/creer-demande" className="tag-nav-link">
+              <i className="fas fa-plus-circle"></i>
+              <span>Créer</span>
             </NavLink>
-            <NavLink to="/mes-demandes" className="nav-link">
-              Demandes
+            <NavLink to="/mes-demandes" className="tag-nav-link">
+              <i className="fas fa-list"></i>
+              <span>Demandes</span>
             </NavLink>
           </>
         )}
@@ -57,11 +61,13 @@ const Header = () => {
         {/* Liens spécifiques aux juristes */}
         {user?.permissions === "juriste" && (
           <>
-            <NavLink to="/juriste/demandes" className="nav-link">
-              Demandes
+            <NavLink to="/juriste/demandes" className="tag-nav-link">
+              <i className="fas fa-list"></i>
+              <span>Demandes</span>
             </NavLink>
-            <NavLink to="/statistiques" className="nav-link">
-              Statistiques
+            <NavLink to="/statistiques" className="tag-nav-link">
+              <i className="fas fa-chart-bar"></i>
+              <span>Statistiques</span>
             </NavLink>
           </>
         )}
@@ -69,18 +75,21 @@ const Header = () => {
         {/* Liens spécifiques aux administrateurs */}
         {user?.permissions === "admin" && (
           <>
-            <NavLink to="/admin/panel" className="nav-link">
-              Panel Admin
+            <NavLink to="/admin/panel" className="tag-nav-link">
+              <i className="fas fa-cog"></i>
+              <span>Panel Admin</span>
             </NavLink>
-            <NavLink to="/statistiques" className="nav-link">
-              Statistiques
+            <NavLink to="/statistiques" className="tag-nav-link">
+              <i className="fas fa-chart-bar"></i>
+              <span>Statistiques</span>
             </NavLink>
           </>
         )}
 
         {/* Liens communs à tous les utilisateurs */}
-        <NavLink to="/faq" className="nav-link">
-          FAQ
+        <NavLink to="/faq" className="tag-nav-link">
+          <i className="fas fa-question-circle"></i>
+          <span>FAQ</span>
         </NavLink>
       </nav>
     </header>

@@ -37,83 +37,86 @@ const Dashboard = () => {
     navigate("/login");
   };
 
-  if (loading) return <p className="loading-text">Chargement...</p>;
+  if (loading) return <p className="tag-loading-text">Chargement...</p>;
 
   return (
-    <div className="dashboard-container">
-      <h1 className="dashboard-title">
+    <div className="tag-dashboard-container">
+      <h1 className="tag-dashboard-title">
         Bienvenue, {user.nom} {user.prenom} !
       </h1>
-      <p className="dashboard-subtitle">
+      <p className="tag-dashboard-subtitle">
         Vous êtes connecté en tant que {user.role}.
       </p>
 
       {/* 🔥 Dashboard spécifique selon le rôle */}
       {user.role === "admin" && (
-        <div className="admin-dashboard">
+        <div className="tag-admin-dashboard">
           <StatistiquesSatisfaction />
         </div>
       )}
-      
+
       {/* Autres sections du dashboard selon le rôle */}
       {user.role === "admin" ? (
-        <div className="dashboard-grid">
+        <div className="tag-dashboard-grid">
           <div
-            className="dashboard-card"
+            className="tag-dashboard-card"
             onClick={() => navigate("/adminpanel")}
           >
             <h2>Gérer les utilisateurs</h2>
             <p>Validez, modifiez et supprimez les comptes.</p>
-            <button className="dashboard-btn">Accéder</button>
+            <button className="tag-dashboard-btn">Accéder</button>
           </div>
 
-          <div className="dashboard-card">
+          <div className="tag-dashboard-card">
             <h2>Statistiques</h2>
             <p>Analysez les demandes et l'activité des utilisateurs.</p>
-            <button className="dashboard-btn">Voir</button>
+            <button className="tag-dashboard-btn">Voir</button>
           </div>
 
-          <div className="dashboard-card">
+          <div className="tag-dashboard-card">
             <h2>Paramètres</h2>
             <p>Gérez les configurations générales.</p>
-            <button className="dashboard-btn">Configurer</button>
+            <button className="tag-dashboard-btn">Configurer</button>
           </div>
         </div>
       ) : (
-        <div className="dashboard-grid">
+        <div className="tag-dashboard-grid">
           <div
-            className="dashboard-card"
+            className="tag-dashboard-card"
             onClick={() => navigate("/creer-demande")}
           >
             <h2>Créer une demande</h2>
             <p>Soumettez rapidement une nouvelle demande juridique.</p>
-            <button className="dashboard-btn">Créer</button>
+            <button className="tag-dashboard-btn">Créer</button>
           </div>
 
           <div
-            className="dashboard-card"
+            className="tag-dashboard-card"
             onClick={() => navigate("/mes-demandes")}
           >
             <h2>Mes demandes</h2>
             <p>Consultez l'état de vos demandes et suivez leur évolution.</p>
-            <button className="dashboard-btn">Voir</button>
+            <button className="tag-dashboard-btn">Voir</button>
           </div>
 
-          <div className="dashboard-card" onClick={() => navigate("/faq")}>
+          <div className="tag-dashboard-card" onClick={() => navigate("/faq")}>
             <h2>FAQ</h2>
             <p>Trouvez des réponses aux questions les plus courantes.</p>
-            <button className="dashboard-btn">Consulter</button>
+            <button className="tag-dashboard-btn">Consulter</button>
           </div>
 
-          <div className="dashboard-card" onClick={() => navigate("/profil")}>
+          <div
+            className="tag-dashboard-card"
+            onClick={() => navigate("/profil")}
+          >
             <h2>Mon Profil</h2>
             <p>Modifiez vos informations personnelles et paramètres.</p>
-            <button className="dashboard-btn">Modifier</button>
+            <button className="tag-dashboard-btn">Modifier</button>
           </div>
         </div>
       )}
 
-      <button className="logout-btn" onClick={handleLogout}>
+      <button className="tag-logout-btn" onClick={handleLogout}>
         Se déconnecter
       </button>
     </div>

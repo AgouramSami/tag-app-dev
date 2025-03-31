@@ -1,10 +1,10 @@
 /* Import de la police */
 @import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&display=swap");
 /* Appliquer le style même lors du remplissage automatique */
-.input_signup:-webkit-autofill,
-.input_signup:-webkit-autofill:hover,
-.input_signup:-webkit-autofill:focus,
-.input_signup:-webkit-autofill:active {
+.tag-input-signup:-webkit-autofill,
+.tag-input-signup:-webkit-autofill:hover,
+.tag-input-signup:-webkit-autofill:focus,
+.tag-input-signup:-webkit-autofill:active {
   background-color: rgb(
     255,
     255,
@@ -15,7 +15,7 @@
 }
 
 /* Corriger le texte gris clair appliqué par Chrome */
-.input_signup:-webkit-autofill {
+.tag-input-signup:-webkit-autofill {
   -webkit-text-fill-color: rgb(255, 255, 255) !important;
 }
 
@@ -34,7 +34,7 @@ body {
 }
 
 /* Bandeau supérieur avec motif */
-.signup-container::before {
+.tag-signup-container::before {
   content: "";
   position: absolute;
   top: 0;
@@ -49,7 +49,7 @@ body {
 }
 
 /* Conteneur principal */
-.signup-container {
+.tag-signup-container {
   min-height: 100vh;
   padding: 80px 20px;
   display: flex;
@@ -59,7 +59,7 @@ body {
 }
 
 /* Card du formulaire */
-.signup-card {
+.tag-signup-card {
   display: flex;
   justify-content: center;
   flex-direction: column;
@@ -70,13 +70,13 @@ body {
 }
 
 /* Logo avec cercle */
-.logo-container {
+.tag-logo-container {
   position: relative;
   display: inline-block;
   margin-bottom: 50px;
 }
 
-.logo-container::before {
+.tag-logo-container::before {
   content: "";
   position: absolute;
   top: 47%;
@@ -89,7 +89,7 @@ body {
   filter: drop-shadow(0px 10px 5px rgba(5, 3, 31, 0.482));
 }
 
-.logo {
+.tag-logo {
   position: relative;
   width: 80px;
   z-index: 2;
@@ -102,7 +102,7 @@ form {
 }
 
 /* Labels */
-.label_signup {
+.tag-label-signup {
   display: block;
   margin-left: 5px;
   margin-top: 15px;
@@ -117,7 +117,7 @@ form {
 }
 
 /* Champs de formulaire */
-.input_signup {
+.tag-input-signup {
   color: white;
   padding: 12px;
   font-family: "Atkinson Hyperlegible Next", serif;
@@ -142,7 +142,7 @@ input:focus {
 }
 
 /* Bouton principal */
-.signup-btn {
+.tag-signup-btn {
   margin-top: 40px;
   background: #012947;
   color: white;
@@ -157,7 +157,7 @@ input:focus {
   transition: all 0.2s ease-in-out;
 }
 
-.signup-btn:hover {
+.tag-signup-btn:hover {
   background: #e64a19;
 }
 
@@ -179,63 +179,63 @@ p a:hover {
 
 /* Pour les smartphones (jusqu'à 480px) */
 @media (max-width: 480px) {
-  .signup-card {
+  .tag-signup-card {
     padding: 1.5rem;
     width: 100%;
   }
 
-  .logo-container::before {
+  .tag-logo-container::before {
     width: 120px;
     height: 120px;
   }
 
-  .logo {
+  .tag-logo {
     width: 70px;
   }
 }
 
 /* Pour les tablettes (jusqu'à 768px) */
 @media (max-width: 768px) {
-  .signup-container {
+  .tag-signup-container {
     padding: 50px 20px;
   }
 
-  .signup-card {
+  .tag-signup-card {
     max-width: 350px;
   }
 }
 
 /* Pour les grands écrans (à partir de 1024px) */
 @media (min-width: 1024px) {
-  .signup-card {
+  .tag-signup-card {
     max-width: 450px;
   }
 
-  .logo-container::before {
+  .tag-logo-container::before {
     width: 180px;
     height: 180px;
   }
 
-  .logo {
+  .tag-logo {
     width: 90px;
   }
 }
 
 /* Conteneur du mot de passe */
-.password-container {
+.tag-password-container {
   position: relative;
   display: flex;
   align-items: center;
 }
 
 /* Input mot de passe */
-.password-container input {
+.tag-password-container input {
   width: 100%;
   padding-right: 40px; /* Pour laisser de la place au bouton */
 }
 
 /* Bouton pour afficher/masquer le mot de passe */
-.toggle-password {
+.tag-toggle-password {
   position: absolute;
   right: 10px;
   background: none;
@@ -246,101 +246,69 @@ p a:hover {
 }
 
 /* Messages d'erreur */
-.error-text {
+.tag-error-text {
   color: #ff4d4d;
   font-size: 14px;
-  margin: 5px 0 10px;
+  margin-top: 5px;
   text-align: left;
 }
 
-/* Message de validation du compte */
-.success-message {
-  text-align: center;
+/* Message de succès */
+.tag-success-message {
   color: #ffffff;
-  font-size: 16px;
-  margin-top: 20px;
+  text-align: center;
+  padding: 20px;
 }
 
-.login-link {
+/* Lien de connexion */
+.tag-login-link {
   color: #f3633f;
-  font-weight: bold;
   text-decoration: none;
+  font-weight: bold;
+  margin-top: 15px;
+  display: inline-block;
 }
 
-.login-link:hover {
+.tag-login-link:hover {
   text-decoration: underline;
 }
 
-.password-strength {
-  margin-top: 5px;
+/* Force du mot de passe */
+.tag-password-strength {
+  margin-top: 10px;
+  text-align: left;
 }
 
-.strength-bar {
-  height: 5px;
+.tag-strength-bar {
+  height: 4px;
   width: 100%;
   background-color: #ddd;
-  border-radius: 3px;
-  transition: background-color 0.3s;
-}
-
-.strength-1 {
-  background-color: red;
-  width: 25%;
-}
-.strength-2 {
-  background-color: orange;
-  width: 50%;
-}
-.strength-3 {
-  background-color: yellowgreen;
-  width: 75%;
-}
-.strength-4 {
-  background-color: green;
-  width: 100%;
-}
-
-.strength-text {
-  font-size: 14px;
-  color: rgb(255, 255, 255);
-}
-
-.error-text {
-  color: red;
-  font-size: 12px;
+  border-radius: 2px;
   margin-top: 5px;
 }
 
-.password-strength {
-  margin-top: 5px;
-}
-
-.strength-bar {
-  height: 5px;
-  width: 100%;
-  background-color: #ddd;
-  border-radius: 3px;
-  transition: background-color 0.3s;
-}
-
-.strength-1 {
-  background-color: red;
+.tag-strength-1 {
   width: 25%;
-}
-.strength-2 {
-  background-color: orange;
-  width: 50%;
-}
-.strength-3 {
-  background-color: yellowgreen;
-  width: 75%;
-}
-.strength-4 {
-  background-color: green;
-  width: 100%;
+  background-color: #ff4d4d;
 }
 
-.strength-text {
+.tag-strength-2 {
+  width: 50%;
+  background-color: #ffa64d;
+}
+
+.tag-strength-3 {
+  width: 75%;
+  background-color: #4dff4d;
+}
+
+.tag-strength-4 {
+  width: 100%;
+  background-color: #4dff4d;
+}
+
+.tag-strength-text {
   font-size: 14px;
-  color: rgb(255, 255, 255);
+  color: #ffffff;
+  margin-top: 5px;
 }

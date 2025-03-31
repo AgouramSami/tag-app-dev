@@ -136,17 +136,21 @@ const Signup = () => {
   };
 
   return (
-    <div className="signup-container">
-      <div className="signup-card">
-        <div className="logo-container">
-          <img src="src/assets/tag_logo.svg" alt="TAG Logo" className="logo" />
+    <div className="tag-signup-container">
+      <div className="tag-signup-card">
+        <div className="tag-logo-container">
+          <img
+            src="src/assets/tag_logo.svg"
+            alt="TAG Logo"
+            className="tag-logo"
+          />
         </div>
 
         {isSubmitted ? (
-          <div className="success-message">
+          <div className="tag-success-message">
             <p>Votre compte a été créé avec succès !</p>
             <p>Un administrateur doit valider votre compte avant connexion.</p>
-            <Link to="/login" className="login-link">
+            <Link to="/login" className="tag-login-link">
               Aller à la page de connexion
             </Link>
           </div>
@@ -154,12 +158,12 @@ const Signup = () => {
           <form onSubmit={handleSubmit}>
             {["nom", "prenom", "email", "telephone"].map((field, index) => (
               <div key={index}>
-                <label className="label_signup">
+                <label className="tag-label-signup">
                   {field.charAt(0).toUpperCase() + field.slice(1)}{" "}
                   <span className="required">*</span> :
                 </label>
                 <input
-                  className="input_signup"
+                  className="tag-input-signup"
                   type="text"
                   name={field}
                   value={formData[field]}
@@ -167,16 +171,16 @@ const Signup = () => {
                   required
                 />
                 {errors[field] && (
-                  <small className="error-text">{errors[field]}</small>
+                  <small className="tag-error-text">{errors[field]}</small>
                 )}
               </div>
             ))}
 
-            <label className="label_signup">
+            <label className="tag-label-signup">
               Fonction <span className="required">*</span> :
             </label>
             <select
-              className="input_signup"
+              className="tag-input-signup"
               name="fonction"
               value={formData.fonction}
               onChange={handleChange}
@@ -190,11 +194,11 @@ const Signup = () => {
               ))}
             </select>
 
-            <label className="label_signup">
+            <label className="tag-label-signup">
               Commune <span className="required">*</span> :
             </label>
             <select
-              className="input_signup"
+              className="tag-input-signup"
               name="commune"
               value={formData.commune}
               onChange={handleChange}
@@ -208,12 +212,12 @@ const Signup = () => {
               ))}
             </select>
 
-            <label className="label_signup">
+            <label className="tag-label-signup">
               Mot de passe <span className="required">*</span> :
             </label>
-            <div className="password-container">
+            <div className="tag-password-container">
               <input
-                className="input_signup"
+                className="tag-input-signup"
                 type={showPassword ? "text" : "password"}
                 name="password"
                 value={formData.password}
@@ -222,7 +226,7 @@ const Signup = () => {
               />
               <button
                 type="button"
-                className="toggle-password"
+                className="tag-toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? "Cacher" : "Voir"}
@@ -230,11 +234,11 @@ const Signup = () => {
             </div>
 
             {/* Barre de force du mot de passe */}
-            <div className="password-strength">
+            <div className="tag-password-strength">
               <div
-                className={`strength-bar strength-${passwordStrength}`}
+                className={`tag-strength-bar tag-strength-${passwordStrength}`}
               ></div>
-              <p className="strength-text">
+              <p className="tag-strength-text">
                 {passwordStrength === 0 && "Faible"}
                 {passwordStrength === 1 && "Moyen"}
                 {passwordStrength === 2 && "Bon"}
@@ -242,12 +246,12 @@ const Signup = () => {
               </p>
             </div>
 
-            <label className="label_signup">
+            <label className="tag-label-signup">
               Confirmer le mot de passe <span className="required">*</span> :
             </label>
-            <div className="password-container">
+            <div className="tag-password-container">
               <input
-                className="input_signup"
+                className="tag-input-signup"
                 type={showConfirmPassword ? "text" : "password"}
                 name="confirmPassword"
                 value={formData.confirmPassword}
@@ -256,26 +260,22 @@ const Signup = () => {
               />
               <button
                 type="button"
-                className="toggle-password"
+                className="tag-toggle-password"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
                 {showConfirmPassword ? "Cacher" : "Voir"}
               </button>
             </div>
 
-            {/* Message d'erreur si les mots de passe ne correspondent pas */}
             {errors.confirmPassword && (
-              <small className="error-text">{errors.confirmPassword}</small>
+              <small className="tag-error-text">{errors.confirmPassword}</small>
             )}
 
-            <button className="signup-btn" type="submit">
+            <button type="submit" className="tag-signup-btn">
               S'INSCRIRE
             </button>
-            {errors.api && <small className="error-text">{errors.api}</small>}
 
-            <p>
-              Déjà un compte ? <Link to="/login">Se connecter</Link>
-            </p>
+            {errors.api && <p className="tag-error-text">{errors.api}</p>}
           </form>
         )}
       </div>

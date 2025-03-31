@@ -11,12 +11,12 @@ const strateRoutes = require("./routes/stratesRoutes");
 const app = express();
 const themeRoutes = require("./routes/themeRoutes");
 const path = require("path");
-const faqRoutes = require("./routes/faqRoutes"); // Ajout des routes FAQ
+const faqRoutes = require("./routes/faqRoutes");
 
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173", // ✅ Remplace par l'URL de ton frontend
+    origin: "http://localhost:5173",
     credentials: true,
     methods: "GET,POST,PUT,DELETE",
     allowedHeaders: "Content-Type,Authorization",

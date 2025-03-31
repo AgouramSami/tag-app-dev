@@ -1,5 +1,5 @@
 /* Mot de passe oublié */
-.forgot-password {
+.tag-forgot-password {
   color: white;
   margin-top: 15px;
   font-size: 14px;
@@ -8,13 +8,13 @@
   transition: color 0.3s;
 }
 
-.forgot-password:hover {
+.tag-forgot-password:hover {
   color: #f3633f;
   cursor: pointer;
 }
 
 /* Bandeau supérieur */
-.login-container::before {
+.tag-login-container::before {
   content: "";
   position: absolute;
   top: 0;
@@ -29,7 +29,7 @@
 }
 
 /* Conteneur principal */
-.login-container {
+.tag-login-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -39,7 +39,7 @@
 }
 
 /* Bouton "INSCRIPTION" */
-.signup-btn2 {
+.tag-signup-btn2 {
   margin-top: 10px;
   background: #f3633f;
   color: white;
@@ -54,12 +54,12 @@
   transition: all 0.3s ease-in-out;
 }
 
-.signup-btn2:hover {
+.tag-signup-btn2:hover {
   background: #e64a19;
 }
 
 /* Bouton "CONNEXION" */
-.signup-btn3 {
+.tag-signup-btn3 {
   margin-top: 30px;
   background: #012947;
   color: white;
@@ -74,17 +74,18 @@
   transition: all 0.2s ease-in-out;
 }
 
-.signup-btn3:hover {
+.tag-signup-btn3:hover {
   background: #e64a19;
 }
 
 /* Pour les smartphones (jusqu'à 480px) */
 @media (max-width: 480px) {
-  .login-container {
+  .tag-login-container {
     padding: 50px 20px;
   }
 
-  .signup-btn2, .signup-btn3 {
+  .tag-signup-btn2,
+  .tag-signup-btn3 {
     font-size: 14px;
     padding: 10px;
   }
@@ -92,22 +93,24 @@
 
 /* Pour les tablettes (jusqu'à 768px) */
 @media (max-width: 768px) {
-  .login-container {
+  .tag-login-container {
     padding: 80px 30px;
   }
 
-  .signup-btn2, .signup-btn3 {
+  .tag-signup-btn2,
+  .tag-signup-btn3 {
     font-size: 15px;
   }
 }
 
 /* Pour les grands écrans (à partir de 1024px) */
 @media (min-width: 1024px) {
-  .login-container {
+  .tag-login-container {
     padding: 100px;
   }
 
-  .signup-btn2, .signup-btn3 {
+  .tag-signup-btn2,
+  .tag-signup-btn3 {
     font-size: 16px;
   }
 }

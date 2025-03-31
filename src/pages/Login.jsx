@@ -39,7 +39,7 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
+    <div className="tag-login-container">
       <div className="signup-card">
         <div className="logo-container">
           <img src="src/assets/tag_logo.svg" alt="TAG Logo" className="logo" />
@@ -74,16 +74,16 @@ const Login = () => {
             required
           />
 
-          <Link to="/forgot-password" className="forgot-password">
+          <Link to="/forgot-password" className="tag-forgot-password">
             Mot de passe oublié ?
           </Link>
 
-          <button type="submit" className="signup-btn3" disabled={loading}>
+          <button type="submit" className="tag-signup-btn3" disabled={loading}>
             {loading ? "Connexion en cours..." : "CONNEXION"}
           </button>
           {/*  
           <Link to="/signup">
-            <button type="button" className="signup-btn2">
+            <button type="button" className="tag-signup-btn2">
               INSCRIPTION
             </button>
           </Link>

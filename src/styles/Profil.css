@@ -1,5 +1,5 @@
 /* Styles de base (mobile) */
-.profil-container {
+.tag-profil-container {
   padding: 20px;
   width: 100%;
   max-width: 500px;
@@ -7,23 +7,23 @@
   background: white;
 }
 
-.profil-card {
+.tag-profil-card {
   width: 100%;
 }
 
-.profil-header {
+.tag-profil-header {
   text-align: center;
   margin-bottom: 30px;
 }
 
-.profil-header h1 {
+.tag-profil-header h1 {
   font-size: 20px;
   font-weight: 600;
   color: #333;
   margin-bottom: 20px;
 }
 
-.profile-image-container {
+.tag-profile-image-container {
   position: relative;
   width: 120px;
   height: 120px;
@@ -31,14 +31,14 @@
   background-color: #34c759;
 }
 
-.profile-image {
+.tag-profile-image {
   border-radius: 50px;
   object-fit: cover;
   border: 3px solid #fff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.profile-image-edit {
+.tag-profile-image-edit {
   position: absolute;
   bottom: 0;
   right: 0;
@@ -55,7 +55,7 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.profile-username {
+.tag-profile-username {
   font-size: 18px;
   font-weight: 600;
   color: #333;
@@ -63,21 +63,21 @@
   text-align: center;
 }
 
-.profile-handle {
+.tag-profile-handle {
   font-size: 14px;
   color: #666;
   margin-bottom: 20px;
   text-align: center;
 }
 
-.profil-info {
+.tag-profil-info {
   display: flex;
   flex-direction: column;
   gap: 15px;
   padding: 0 15px;
 }
 
-.profil-info-group {
+.tag-profil-info-group {
   display: flex;
   flex-direction: column;
   background: #f8f9fd;
@@ -85,14 +85,14 @@
   padding: 12px 15px;
 }
 
-.profil-info-group label {
+.tag-profil-info-group label {
   font-size: 13px;
   color: #666;
   margin-bottom: 5px;
 }
 
-.profil-info-group p,
-.profil-info-group input {
+.tag-profil-info-group p,
+.tag-profil-info-group input {
   font-size: 15px;
   color: #333;
   border: none;
@@ -100,20 +100,20 @@
   padding: 0;
 }
 
-.profil-info-group input {
+.tag-profil-info-group input {
   width: 100%;
 }
 
-.profil-info-group input:focus {
+.tag-profil-info-group input:focus {
   outline: none;
 }
 
-.profil-menu {
+.tag-profil-menu {
   margin-top: 30px;
   padding: 0 15px;
 }
 
-.profil-menu-item {
+.tag-profil-menu-item {
   display: flex;
   align-items: center;
   padding: 15px 0;
@@ -123,21 +123,21 @@
   cursor: pointer;
 }
 
-.profil-menu-item:last-child {
+.tag-profil-menu-item:last-child {
   border-bottom: none;
 }
 
-.profil-menu-item i {
+.tag-profil-menu-item i {
   margin-right: 15px;
   color: #4169e1;
   font-size: 20px;
 }
 
-.profil-menu-item.logout {
+.tag-profil-menu-item.logout {
   color: #ff3b30;
 }
 
-.profil-edit-btn {
+.tag-profil-edit-btn {
   background: #4169e1;
   color: white;
   width: 100%;
@@ -150,13 +150,13 @@
   cursor: pointer;
 }
 
-.profil-actions {
+.tag-profil-actions {
   padding: 0 15px;
   margin-top: 20px;
 }
 
-.profil-save-btn,
-.profil-cancel-btn {
+.tag-profil-save-btn,
+.tag-profil-cancel-btn {
   width: 100%;
   padding: 12px;
   border: none;
@@ -167,18 +167,18 @@
   cursor: pointer;
 }
 
-.profil-save-btn {
+.tag-profil-save-btn {
   background: #4169e1;
   color: white;
 }
 
-.profil-cancel-btn {
+.tag-profil-cancel-btn {
   background: #f8f9fd;
   color: #333;
 }
 
-.profil-error-message,
-.profil-success-message {
+.tag-profil-error-message,
+.tag-profil-success-message {
   padding: 8px 12px;
   margin: 10px 15px;
   border-radius: 8px;
@@ -187,19 +187,19 @@
   font-weight: 500;
 }
 
-.profil-error-message {
+.tag-profil-error-message {
   background-color: #ffe5e5;
   color: #ff3b30;
 }
 
-.profil-success-message {
+.tag-profil-success-message {
   background-color: #e5ffe9;
   color: #34c759;
 }
 
 /* Tablet et Desktop */
 @media (min-width: 768px) {
-  .profil-container {
+  .tag-profil-container {
     margin-top: 30px;
     border-radius: 20px;
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
