@@ -43,11 +43,17 @@ router.post(
             texte: description,
             piecesJointes: fichiers,
             type: "demande",
+            estJuriste: false,
+            date: new Date(),
           },
         ],
       });
 
       await nouvelleDemande.save();
+
+      // Peupler l'auteur du message pour la réponse
+      await nouvelleDemande.populate("messages.auteur", "nom prenom");
+
       res.status(201).json({
         message: "Demande créée avec succès",
         demande: nouvelleDemande,
@@ -84,7 +90,7 @@ router.get("/", authMiddleware, async (req, res) => {
       filter = {
         $or: [
           { "reponse.juriste": req.user._id },
-          { statut: { $regex: new RegExp("^en attente$", "i") } },
+          { statut: { $in: ["en attente", "traitée", "archivée"] } },
         ],
       };
       console.log("🔍 Filtre appliqué:", JSON.stringify(filter, null, 2));
@@ -98,7 +104,6 @@ router.get("/", authMiddleware, async (req, res) => {
 
     const demandes = await Demande.find(filter)
       .populate("utilisateur", "nom prenom email")
-      .populate("reponse.juriste", "nom prenom")
       .populate("messages.auteur", "nom prenom")
       .sort({ dateCreation: -1 });
 
@@ -152,7 +157,7 @@ router.put(
 
       // Créer la réponse
       const reponseData = {
-        texte: req.body.reponse || "Aucune réponse",
+        texte: req.body.reponse || req.body.texte || "Aucune réponse",
         juriste: req.user._id,
         fichiers: fichiersReponse,
         statut: "répondu",
@@ -164,7 +169,7 @@ router.put(
       // Ajouter la réponse comme message
       await demande.ajouterMessage({
         auteur: req.user._id,
-        texte: req.body.reponse || "Aucune réponse",
+        texte: req.body.reponse || req.body.texte || "Aucune réponse",
         piecesJointes: fichiersReponse,
         type: "reponse",
       });
@@ -193,32 +198,41 @@ router.post(
       if (!texte) {
         return res
           .status(400)
-          .json({ message: "Le message ne peut pas être vide." });
+          .json({ message: "Le texte du message est requis" });
       }
 
       const demande = await Demande.findById(req.params.id);
       if (!demande) {
-        return res.status(404).json({ message: "Demande non trouvée." });
+        return res.status(404).json({ message: "Demande non trouvée" });
       }
 
-      // Vérifier les permissions
-      if (
-        !req.user.permissions.includes("juriste") &&
-        demande.utilisateur.toString() !== req.user._id.toString()
-      ) {
-        return res.status(403).json({ message: "Accès non autorisé." });
-      }
+      // Déterminer si l'utilisateur est un juriste
+      const estJuriste = req.user.permissions.includes("juriste");
 
-      await demande.ajouterMessage({
+      // Créer le message
+      const messageData = {
         auteur: req.user._id,
         texte,
         piecesJointes: fichiers,
-        type: "message",
-      });
+        type: estJuriste ? "reponse" : "demande",
+        estJuriste,
+      };
 
-      res.json({ message: "Message ajouté avec succès", demande });
+      // Ajouter le message à la demande
+      await demande.ajouterMessage(messageData);
+
+      // Peupler l'auteur du message pour la réponse
+      await demande.populate("messages.auteur", "nom prenom");
+
+      // Retourner le dernier message ajouté
+      const nouveauMessage = demande.messages[demande.messages.length - 1];
+
+      res.json({
+        message: "Message ajouté avec succès",
+        message: nouveauMessage,
+      });
     } catch (error) {
-      console.error("❌ Erreur lors de l'ajout d'un message :", error);
+      console.error("❌ Erreur lors de l'ajout du message :", error);
       res.status(500).json({ message: "Erreur serveur" });
     }
   }
@@ -251,43 +265,34 @@ router.delete("/:id", authMiddleware, async (req, res) => {
 // 📌 ✅ Clôturer une demande avec une note
 router.put("/:id/cloturer", authMiddleware, async (req, res) => {
   try {
-    const { note } = req.body;
+    const { note, commentaire } = req.body;
+
+    if (!note || note < 1 || note > 5) {
+      return res
+        .status(400)
+        .json({ message: "La note doit être comprise entre 1 et 5" });
+    }
+
     const demande = await Demande.findById(req.params.id);
 
     if (!demande) {
       return res.status(404).json({ message: "Demande non trouvée" });
     }
 
-    // Vérifier que l'utilisateur est bien le propriétaire de la demande
-    if (demande.utilisateur.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Accès non autorisé" });
+    if (demande.utilisateur.toString() !== req.user.id) {
+      return res
+        .status(403)
+        .json({ message: "Vous n'êtes pas autorisé à clôturer cette demande" });
     }
 
-    // Vérifier que la demande est bien en statut "répondu"
-    if (demande.statut !== "répondu") {
-      return res.status(400).json({
-        message: "La demande doit être en statut 'répondu' pour être clôturée",
-      });
-    }
-
-    // Récupérer la commune et sa strate
-    const commune = await Commune.findOne({ nom: demande.commune });
-    if (!commune) {
-      return res.status(404).json({ message: "Commune non trouvée" });
-    }
-
-    // Mettre à jour la demande
-    demande.statut = "clôturé";
-    demande.note = note;
-    demande.dateCloture = new Date();
-    demande.strateCommune = commune.strate;
-
-    await demande.save();
+    await demande.cloturer(note, commentaire);
 
     res.json({ message: "Demande clôturée avec succès", demande });
   } catch (error) {
-    console.error("❌ Erreur lors de la clôture de la demande :", error);
-    res.status(500).json({ message: "Erreur serveur" });
+    console.error("Erreur lors de la clôture de la demande:", error);
+    res
+      .status(500)
+      .json({ message: "Erreur lors de la clôture de la demande" });
   }
 });
 
@@ -388,131 +393,105 @@ const supprimerDemandesRGPD = async () => {
 // Planifier la tâche de suppression RGPD (exécution quotidienne)
 setInterval(supprimerDemandesRGPD, 24 * 60 * 60 * 1000);
 
-// 📊 Statistiques de satisfaction par strate
+// 📊 Statistiques de satisfaction
 router.get("/stats/satisfaction", authMiddleware, async (req, res) => {
   try {
-    console.log("👤 Utilisateur connecté:", {
-      id: req.user._id,
-      permissions: req.user.permissions,
-      email: req.user.email,
-    });
+    console.log("🔍 Début du calcul des statistiques de satisfaction");
+    console.log("👤 Utilisateur:", req.user);
 
-    if (!req.user || !["admin", "juriste"].includes(req.user.permissions)) {
-      console.log(
-        "❌ Accès non autorisé pour l'utilisateur:",
-        req.user?.permissions
-      );
+    if (!req.user || !req.user.permissions.includes("juriste")) {
+      console.log("❌ Accès refusé - Permissions insuffisantes");
       return res.status(403).json({ message: "Accès non autorisé" });
     }
 
-    console.log("🔍 Début de l'agrégation des statistiques...");
-
-    // Vérifier d'abord s'il y a des demandes clôturées avec des notes
-    const demandesAvecNotes = await Demande.countDocuments({
+    // Vérifier d'abord s'il y a des demandes archivées avec des notes
+    const demandesArchivees = await Demande.find({
+      statut: "archivée",
       note: { $exists: true, $ne: null },
-      statut: "clôturé",
     });
 
-    if (demandesAvecNotes === 0) {
-      console.log("ℹ️ Aucune demande clôturée avec note trouvée");
-      return res.json([]);
-    }
+    console.log(
+      `📊 Nombre de demandes archivées avec notes: ${demandesArchivees.length}`
+    );
 
     const stats = await Demande.aggregate([
       {
         $match: {
+          statut: "archivée",
           note: { $exists: true, $ne: null },
-          statut: "clôturé",
-        },
-      },
-      {
-        $lookup: {
-          from: "communes",
-          localField: "commune",
-          foreignField: "_id",
-          as: "communeInfo",
-        },
-      },
-      {
-        $unwind: {
-          path: "$communeInfo",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "stratecommunes",
-          localField: "communeInfo.strateCommune",
-          foreignField: "_id",
-          as: "strateInfo",
-        },
-      },
-      {
-        $unwind: {
-          path: "$strateInfo",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $match: {
-          "strateInfo._id": { $exists: true, $ne: null },
         },
       },
       {
         $group: {
-          _id: "$strateInfo._id",
-          strate: { $first: "$strateInfo" },
+          _id: "$theme",
+          theme: { $first: "$theme" },
           totalDemandes: { $sum: 1 },
           noteMoyenne: { $avg: "$note" },
-          distribution: {
-            $push: "$note",
-          },
+          note1: { $sum: { $cond: [{ $eq: ["$note", 1] }, 1, 0] } },
+          note2: { $sum: { $cond: [{ $eq: ["$note", 2] }, 1, 0] } },
+          note3: { $sum: { $cond: [{ $eq: ["$note", 3] }, 1, 0] } },
+          note4: { $sum: { $cond: [{ $eq: ["$note", 4] }, 1, 0] } },
+          note5: { $sum: { $cond: [{ $eq: ["$note", 5] }, 1, 0] } },
         },
       },
       {
         $project: {
-          _id: 1,
-          strate: 1,
+          _id: 0,
+          theme: 1,
           totalDemandes: 1,
-          noteMoyenne: 1,
+          noteMoyenne: { $round: ["$noteMoyenne", 2] },
           distribution: {
-            $reduce: {
-              input: { $range: [1, 6] },
-              initialValue: {},
-              in: {
-                $mergeObjects: [
-                  "$$value",
-                  {
-                    ["$$this"]: {
-                      $size: {
-                        $filter: {
-                          input: "$$distribution",
-                          as: "note",
-                          cond: { $eq: ["$$note", "$$this"] },
-                        },
-                      },
-                    },
-                  },
-                ],
-              },
-            },
+            1: "$note1",
+            2: "$note2",
+            3: "$note3",
+            4: "$note4",
+            5: "$note5",
           },
         },
       },
+      {
+        $sort: { theme: 1 },
+      },
     ]);
 
-    console.log("✅ Statistiques récupérées avec succès:", stats);
+    console.log(
+      "✅ Statistiques calculées avec succès:",
+      JSON.stringify(stats, null, 2)
+    );
     res.json(stats);
   } catch (error) {
     console.error(
-      "❌ Erreur détaillée lors de la récupération des statistiques:",
+      "❌ Erreur détaillée lors du calcul des statistiques:",
       error
     );
-    res.status(500).json({
-      message: "Erreur serveur",
-      error: error.message,
-      stack: error.stack,
-    });
+    console.error("Stack trace:", error.stack);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// 📌 ⚡ Mettre à jour le statut d'une demande
+router.put("/:id/statut", authMiddleware, async (req, res) => {
+  try {
+    const { statut } = req.body;
+
+    if (!req.user.permissions.includes("juriste")) {
+      return res.status(403).json({
+        message: "Seuls les juristes peuvent mettre à jour le statut",
+      });
+    }
+
+    const demande = await Demande.findById(req.params.id);
+    if (!demande) {
+      return res.status(404).json({ message: "Demande non trouvée" });
+    }
+
+    demande.statut = statut;
+    await demande.save();
+
+    res.json({ message: "Statut mis à jour avec succès", demande });
+  } catch (error) {
+    console.error("❌ Erreur lors de la mise à jour du statut :", error);
+    res.status(500).json({ message: "Erreur serveur" });
   }
 });
 

@@ -1,21 +1,19 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "../styles/header.css";
 
 const Header = () => {
   const location = useLocation();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    // ✅ Récupère l'utilisateur depuis sessionStorage
-    const storedUser = JSON.parse(sessionStorage.getItem("user"));
-    setUser(storedUser);
-  }, []);
+  const { user } = useAuth();
 
   // Cache le header sur les pages login et signup
   if (location.pathname === "/login" || location.pathname === "/signup") {
     return null;
   }
+
+  console.log("Utilisateur du contexte:", user);
+  console.log("Chemin actuel:", location.pathname);
 
   const getHomeLink = () => {
     switch (user?.permissions) {

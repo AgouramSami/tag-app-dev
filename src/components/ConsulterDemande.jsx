@@ -1,36 +1,157 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import CloturerDemande from "./CloturerDemande";
 import "../styles/ConsulterDemande.css";
 
 const API_URL = "http://localhost:5000"; // URL du backend
 
-const ConsulterDemande = ({ demande, onSubmit, onRetour }) => {
-  const [reponse, setReponse] = useState("");
+const ConsulterDemande = ({
+  demande,
+  onSubmit,
+  onRetour,
+  isJuriste = false,
+}) => {
+  const [message, setMessage] = useState("");
   const [fichier, setFichier] = useState(null);
   const [erreurFichier, setErreurFichier] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [commune, setCommune] = useState(null);
+  const messagesEndRef = useRef(null);
   const [showCloturer, setShowCloturer] = useState(false);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const response = await fetch(`${API_URL}/api/demandes/${demande._id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setMessages(data.messages);
+        } else {
+          // Si la requête échoue, utiliser les messages de la props demande
+          console.log(
+            "⚠️ Impossible de récupérer les messages, utilisation des messages locaux"
+          );
+          setMessages(demande.messages || []);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération des messages:", error);
+        // En cas d'erreur, utiliser les messages de la props demande
+        setMessages(demande.messages || []);
+      }
+    };
+
+    fetchMessages();
+    fetchCommune();
+    scrollToBottom();
+  }, [demande._id, demande.messages]);
+
+  const fetchCommune = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        console.error("Token non trouvé");
+        return;
+      }
+
+      // Récupération de la commune
+      const communeResponse = await fetch(
+        `${API_URL}/api/communes/${demande.commune}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (communeResponse.ok) {
+        const communeData = await communeResponse.json();
+        setCommune(communeData);
+      } else {
+        console.error(
+          "Erreur lors de la récupération de la commune:",
+          await communeResponse.text()
+        );
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération des données:", error);
+    }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!reponse.trim()) {
-      alert("La réponse ne peut pas être vide");
+    if (!message.trim()) {
+      alert("Veuillez entrer un message");
       return;
     }
 
-    // Créer un objet avec la réponse et le fichier
-    const reponseData = {
-      texte: reponse,
-      fichier: fichier,
-    };
+    try {
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        alert("Vous devez être connecté pour envoyer un message");
+        return;
+      }
 
-    // Log des données avant envoi
-    console.log("📤 Envoi de la réponse:", {
-      texte: reponseData.texte,
-      fichier: reponseData.fichier?.name,
-    });
+      const formData = new FormData();
+      formData.append("texte", message);
+      formData.append("type", isJuriste ? "reponse" : "demande");
+      formData.append("estJuriste", isJuriste.toString());
+      if (fichier) {
+        formData.append("fichiers", fichier);
+      }
 
-    onSubmit(reponseData);
+      const response = await fetch(
+        `${API_URL}/api/demandes/${demande._id}/message`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'envoi du message");
+      }
+
+      const messageData = await response.json();
+
+      // Créer le nouveau message avec les données complètes
+      const nouveauMessage = {
+        texte: message,
+        auteur: {
+          _id: sessionStorage.getItem("userId"),
+          nom: sessionStorage.getItem("userNom"),
+          prenom: sessionStorage.getItem("userPrenom"),
+        },
+        date: new Date().toISOString(),
+        type: isJuriste ? "reponse" : "demande",
+        estJuriste: isJuriste,
+        piecesJointes: messageData.message?.piecesJointes || [],
+      };
+
+      // Mise à jour locale des messages
+      setMessages((prevMessages) => [...prevMessages, nouveauMessage]);
+
+      // Réinitialisation du formulaire
+      setMessage("");
+      setFichier(null);
+      scrollToBottom();
+    } catch (error) {
+      console.error("❌ Erreur:", error);
+      alert(
+        error.message || "Une erreur est survenue lors de l'envoi du message"
+      );
+    }
   };
 
   const handleCloturer = async (note) => {
@@ -54,7 +175,7 @@ const ConsulterDemande = ({ demande, onSubmit, onRetour }) => {
 
       const data = await response.json();
       console.log("✅ Demande clôturée avec succès:", data);
-      onRetour(); // Retour à la liste des demandes
+      window.location.href = "/"; // Redirection vers la page d'accueil
     } catch (error) {
       console.error("❌ Erreur lors de la clôture:", error);
       alert("Une erreur est survenue lors de la clôture de la demande");
@@ -64,14 +185,12 @@ const ConsulterDemande = ({ demande, onSubmit, onRetour }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Vérifier la taille du fichier (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setErreurFichier("Le fichier ne doit pas dépasser 5MB");
         e.target.value = null;
         return;
       }
 
-      // Vérifier le type de fichier
       const typesAutorises = [
         "application/pdf",
         "image/jpeg",
@@ -97,39 +216,27 @@ const ConsulterDemande = ({ demande, onSubmit, onRetour }) => {
   };
 
   return (
-    <div className="consulter-demande-container">
-      <div className="breadcrumb">
-        <button onClick={onRetour} className="btn-retour">
+    <div className="tag-consulter-container">
+      <div className="tag-consulter-breadcrumb">
+        <button onClick={onRetour} className="tag-consulter-btn-retour">
           <i className="fas fa-arrow-left"></i> Retour
         </button>
       </div>
 
-      <div className="demande-header">
-        <div className="demande-status">
-          <span className={`status-badge ${demande.statut.toLowerCase()}`}>
-            {demande.statut}
-          </span>
-          <span className="demande-date">
-            {new Date(demande.dateCreation).toLocaleDateString()}
-          </span>
-          <span className="demande-number">#{demande._id.slice(-5)}</span>
-        </div>
-      </div>
-
-      <div className="demande-content">
-        <div className="demande-content-top">
-          <div className="demande-detail-info">
+      <div className="tag-consulter-content">
+        <div className="tag-consulter-content-top">
+          <div className="tag-consulter-detail-info">
             <h2>Informations générales</h2>
-            <div className="info-grid">
-              <div className="info-item">
+            <div className="tag-consulter-info-grid">
+              <div className="tag-consulter-info-item">
                 <label>Thème</label>
                 <span>{demande.theme}</span>
               </div>
-              <div className="info-item">
+              <div className="tag-consulter-info-item">
                 <label>Commune</label>
-                <span>{demande.commune}</span>
+                <span>{commune ? commune.nom : "Chargement..."}</span>
               </div>
-              <div className="info-item">
+              <div className="tag-consulter-info-item">
                 <label>Demandeur</label>
                 <span>
                   {demande.utilisateur.nom} {demande.utilisateur.prenom}
@@ -138,138 +245,135 @@ const ConsulterDemande = ({ demande, onSubmit, onRetour }) => {
             </div>
           </div>
 
-          <div className="demande-detail-objet">
-            <h2>Objet de ma demande</h2>
+          <div className="tag-consulter-detail-objet">
+            <h2>Objet de la demande</h2>
             <p>{demande.objet}</p>
           </div>
-
-          <div className="demande-detail-description">
-            <h2>Ma demande</h2>
-            <p>{demande.description}</p>
-          </div>
-
-          {demande.fichiers && demande.fichiers.length > 0 && (
-            <div className="demande-detail-fichiers">
-              <h2>Mes pièces jointes</h2>
-              <ul>
-                {demande.fichiers.map((fichier, index) => (
-                  <li key={index}>
-                    <a
-                      href={`${API_URL}/${fichier}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {formatFileName(fichier)}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
-        <div className="messages-section">
-          <h2>Historique des échanges</h2>
-          <div className="messages-list">
-            {demande.messages &&
-              demande.messages.map((message, index) => (
+
+        <div className="tag-consulter-chat-section">
+          <h2 className="tag-chat-title">Conversation</h2>
+          <div className="tag-chat-messages-wrapper">
+            {messages.map((message, index) => {
+              // Si l'utilisateur est un juriste, ses messages (estJuriste: true) sont à droite
+              // Si l'utilisateur est un demandeur, ses messages (estJuriste: false) sont à droite
+              const shouldShowOnRight = isJuriste
+                ? message.estJuriste
+                : !message.estJuriste;
+
+              return (
                 <div
                   key={index}
-                  className={`message ${
-                    message.type === "reponse" ? "message-reponse" : ""
+                  className={`tag-chat-message ${
+                    shouldShowOnRight
+                      ? "tag-chat-message-sent"
+                      : "tag-chat-message-received"
                   }`}
                 >
-                  <div className="message-header">
-                    <span className="message-author">
-                      {message.auteur.nom} {message.auteur.prenom}
-                    </span>
-                    <span className="message-date">
-                      {new Date(message.date).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="message-content">
-                    <p>{message.texte}</p>
+                  <div className="tag-chat-message-content">
+                    <p className="tag-chat-message-text">{message.texte}</p>
                     {message.piecesJointes &&
                       message.piecesJointes.length > 0 && (
-                        <ul className="message-fichiers">
-                          {message.piecesJointes.map((fichier, idx) => (
-                            <li key={idx}>
-                              <a
-                                href={`${API_URL}/${fichier}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                {formatFileName(fichier)}
-                              </a>
-                            </li>
+                        <div className="tag-chat-attachments">
+                          {message.piecesJointes.map((file, fileIndex) => (
+                            <a
+                              key={fileIndex}
+                              href={`${API_URL}/uploads/${file.replace(
+                                /^.*[\\/]/,
+                                ""
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="tag-chat-attachment-link"
+                            >
+                              <i className="fas fa-paperclip"></i>
+                              {file.replace(/^.*[\\/]/, "")}
+                            </a>
                           ))}
-                        </ul>
+                        </div>
                       )}
                   </div>
+                  <div className="tag-chat-message-info">
+                    <span className="tag-chat-message-author">
+                      {message.auteur.nom} {message.auteur.prenom}
+                      {message.estJuriste && " (Juriste)"}
+                    </span>
+                    <span className="tag-chat-message-time">
+                      {new Date(message.date).toLocaleString("fr-FR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
                 </div>
-              ))}
+              );
+            })}
+            <div ref={messagesEndRef} />
           </div>
+
+          {demande.statut !== "clôturé" && (
+            <form onSubmit={handleSubmit} className="tag-consulter-chat-form">
+              <div className="tag-consulter-chat-input-container">
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Écrivez votre message..."
+                  className="tag-consulter-chat-input"
+                />
+                <div className="tag-consulter-chat-actions">
+                  <div className="tag-consulter-file-upload">
+                    <input
+                      type="file"
+                      id="fichier"
+                      onChange={handleFileChange}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      style={{ display: "none" }}
+                    />
+                    <label
+                      htmlFor="fichier"
+                      className="tag-consulter-file-upload-btn"
+                    >
+                      <i className="fas fa-paperclip"></i>
+                    </label>
+                  </div>
+                  <button type="submit" className="tag-consulter-send-btn">
+                    <i className="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
+              {fichier && (
+                <div className="tag-consulter-selected-file">
+                  <i className="fas fa-file"></i>
+                  <span>{fichier.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFichier(null)}
+                    className="tag-consulter-remove-file-btn"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+              )}
+              {erreurFichier && (
+                <p className="tag-consulter-chat-error">{erreurFichier}</p>
+              )}
+            </form>
+          )}
         </div>
 
-        {demande.statut !== "clôturé" && (
-          <div className="reponse-section">
-            <h2>Répondre à la demande</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="reponse">Votre réponse</label>
-                <textarea
-                  id="reponse"
-                  value={reponse}
-                  onChange={(e) => setReponse(e.target.value)}
-                  placeholder="Écrivez votre réponse ici..."
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="fichier">Pièce jointe (optionnelle)</label>
-                <div className="file-upload">
-                  <input
-                    type="file"
-                    id="fichier"
-                    onChange={handleFileChange}
-                    accept=".pdf,.jpg,.jpeg,.png"
-                  />
-                  <label htmlFor="fichier" className="file-label">
-                    <i className="fas fa-upload"></i>
-                    Choisir un fichier
-                  </label>
-                </div>
-                {erreurFichier && <p className="file-error">{erreurFichier}</p>}
-                <p className="file-info">
-                  Formats acceptés : PDF, JPEG, JPG, PNG (max 5MB)
-                </p>
-              </div>
-
-              <div className="form-actions">
-                <button
-                  type="button"
-                  onClick={onRetour}
-                  className="btn-annuler"
-                >
-                  Annuler
-                </button>
-                <button type="submit" className="btn-envoyer">
-                  Envoyer la réponse
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Afficher le formulaire de clôture si la demande est en statut "répondu" */}
-        {demande.statut === "répondu" && !showCloturer && (
-          <button
-            className="btn-cloturer"
-            onClick={() => setShowCloturer(true)}
-          >
-            Clôturer la demande
-          </button>
-        )}
+        {demande.statut === "traitée" &&
+          demande.utilisateur._id === sessionStorage.getItem("userId") &&
+          !showCloturer && (
+            <button
+              className="btn-cloturer"
+              onClick={() => setShowCloturer(true)}
+            >
+              Clôturer et noter la demande
+            </button>
+          )}
 
         {showCloturer && (
           <CloturerDemande
@@ -312,6 +416,7 @@ ConsulterDemande.propTypes = {
   }).isRequired,
   onSubmit: PropTypes.func.isRequired,
   onRetour: PropTypes.func.isRequired,
+  isJuriste: PropTypes.bool,
 };
 
 export default ConsulterDemande;

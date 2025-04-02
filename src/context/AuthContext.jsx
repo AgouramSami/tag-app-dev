@@ -8,16 +8,18 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const initAuth = () => {
-      const token = sessionStorage.getItem("token");
+      const storedToken = sessionStorage.getItem("token");
       const storedUser = JSON.parse(sessionStorage.getItem("user"));
 
-      if (token && storedUser) {
-        setIsAuthenticated(true);
+      if (storedToken && storedUser) {
+        setToken(storedToken);
         setUser(storedUser);
+        setIsAuthenticated(true);
       }
       setLoading(false);
     };
@@ -39,20 +41,40 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (userData) => {
-    sessionStorage.setItem("token", userData.token);
-    sessionStorage.setItem("user", JSON.stringify(userData.user));
-    setIsAuthenticated(true);
-    setUser(userData.user);
-    const redirectPath = getDefaultRoute(userData.user.permissions);
-    navigate(redirectPath, { replace: true });
+    try {
+      const newToken = userData.token;
+      const newUser = userData.user;
+
+      sessionStorage.setItem("token", newToken);
+      sessionStorage.setItem("user", JSON.stringify(newUser));
+
+      setToken(newToken);
+      setUser(newUser);
+      setIsAuthenticated(true);
+
+      if (newUser.permissions === "juriste") {
+        navigate("/juriste");
+      } else {
+        navigate("/mes-demandes");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la connexion:", error);
+      throw error;
+    }
   };
 
   const logout = () => {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
-    setIsAuthenticated(false);
+    setToken(null);
     setUser(null);
-    navigate("/login", { replace: true });
+    setIsAuthenticated(false);
+    navigate("/login");
+  };
+
+  const updateUser = (updatedUser) => {
+    sessionStorage.setItem("user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
   };
 
   const checkAccess = (requiredPermission) => {
@@ -72,10 +94,12 @@ export const AuthProvider = ({ children }) => {
     logout,
     checkAccess,
     getDefaultRoute,
+    updateUser,
+    token,
   };
 
   if (loading) {
-    return <div>Chargement...</div>; // Vous pouvez remplacer par un composant de loading
+    return <div>Chargement...</div>;
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

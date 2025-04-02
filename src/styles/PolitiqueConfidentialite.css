@@ -1,0 +1,90 @@
+.tag-politique-container {
+  padding: 40px 20px;
+  min-height: 100vh;
+  background: white;
+}
+
+.tag-politique-content {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.tag-politique-content h1 {
+  font-size: 2.5rem;
+  color: #2d3436;
+  margin-bottom: 40px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.tag-politique-section {
+  margin-bottom: 40px;
+}
+
+.tag-politique-section h2 {
+  font-size: 1.5rem;
+  color: #2d3436;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.tag-politique-section p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #636e72;
+  margin-bottom: 15px;
+}
+
+.tag-politique-section ul {
+  list-style-type: none;
+  padding-left: 20px;
+  margin-bottom: 20px;
+}
+
+.tag-politique-section ul li {
+  font-size: 1.1rem;
+  color: #636e72;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.tag-politique-section ul li:before {
+  content: "•";
+  color: #0984e3;
+  font-weight: bold;
+  position: absolute;
+  left: -20px;
+}
+
+.tag-politique-section a {
+  color: #0984e3;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.tag-politique-section a:hover {
+  color: #0773c5;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .tag-politique-container {
+    padding: 20px;
+  }
+
+  .tag-politique-content {
+    padding: 20px;
+  }
+
+  .tag-politique-content h1 {
+    font-size: 2rem;
+  }
+
+  .tag-politique-section h2 {
+    font-size: 1.3rem;
+  }
+}

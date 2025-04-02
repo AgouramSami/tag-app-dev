@@ -1,19 +1,70 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import "../styles/Profil.css";
+import Parametres from "../components/Parametres";
 
 const Profil = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, token, logout, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [communeName, setCommuneName] = useState("");
+  const [showParametres, setShowParametres] = useState(false);
+  const fileInputRef = useRef(null);
+  const [communes, setCommunes] = useState([]);
 
-  // Récupérer les infos de l'utilisateur depuis le stockage
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  useEffect(() => {
+    const fetchCommuneName = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/communes/${user.commune}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (response.data && response.data.nom) {
+          setCommuneName(response.data.nom);
+        } else {
+          setCommuneName("Commune non trouvée");
+        }
+      } catch (error) {
+        console.error(
+          "Erreur lors de la récupération du nom de la commune:",
+          error
+        );
+        setCommuneName("Commune non trouvée");
+      }
+    };
+
+    if (user?.commune) {
+      fetchCommuneName();
+    }
+  }, [user?.commune, token]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Récupérer les communes
+        const communesResponse = await axios.get(
+          "http://localhost:5000/api/communes",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setCommunes(communesResponse.data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des données:", error);
+      }
+    };
+
+    if (token) {
+      fetchData();
+    }
+  }, [token]);
 
   const handleLogout = () => {
     logout();
@@ -26,9 +77,74 @@ const Profil = () => {
     setSuccess(false);
   };
 
+  const handleImageClick = () => {
+    if (isEditing) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Vérifier le type de fichier
+    if (!file.type.startsWith("image/")) {
+      setError("Veuillez sélectionner une image valide");
+      return;
+    }
+
+    // Vérifier la taille du fichier (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("L'image ne doit pas dépasser 5MB");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("photo", file);
+
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/upload-photo",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      // Mettre à jour les informations dans le contexte
+      const updatedUser = { ...user, photoUrl: response.data.photoUrl };
+      updateUser(updatedUser);
+      setEditedUser(updatedUser);
+      setSuccess(true);
+      setError(null);
+
+      // Mettre à jour le profil dans la base de données
+      await axios.put(
+        "http://localhost:5000/api/auth/update-profile",
+        {
+          nom: user.nom,
+          prenom: user.prenom,
+          email: user.email,
+          photoUrl: response.data.photoUrl,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+    } catch (error) {
+      console.error("Erreur lors du téléchargement de la photo:", error);
+      setError(
+        error.response?.data?.message ||
+          "Erreur lors du téléchargement de la photo"
+      );
+    }
+  };
+
   const handleSave = async () => {
     try {
-      const token = sessionStorage.getItem("token");
       const response = await axios.put(
         "http://localhost:5000/api/auth/update-profile",
         {
@@ -41,8 +157,8 @@ const Profil = () => {
         }
       );
 
-      // Mettre à jour les informations dans le sessionStorage
-      sessionStorage.setItem("user", JSON.stringify(response.data));
+      // Mettre à jour les informations dans le contexte
+      updateUser(response.data);
       setSuccess(true);
       setIsEditing(false);
     } catch (error) {
@@ -61,25 +177,46 @@ const Profil = () => {
   return (
     <div className="tag-profil-container">
       <div className="tag-profil-card">
+        <h1>{isEditing ? "Modifier le profil" : "Profil"}</h1>
         <div className="tag-profil-header">
-          <h1>{isEditing ? "Modifier le profil" : "Profil"}</h1>
-          <div className="tag-profile-image-container">
+          <div
+            className="tag-profil-image-container"
+            onClick={handleImageClick}
+          >
             <img
-              src={user.photoUrl || "https://via.placeholder.com/150"}
+              src={
+                editedUser?.photoUrl || user.photoUrl
+                  ? editedUser?.photoUrl || user.photoUrl.startsWith("http")
+                    ? editedUser?.photoUrl || user.photoUrl
+                    : `http://localhost:5000${
+                        editedUser?.photoUrl || user.photoUrl
+                      }`
+                  : "/default-avatar.png"
+              }
               alt="Photo de profil"
-              className="tag-profile-image"
+              className="tag-profil-image"
             />
             {isEditing && (
-              <div className="tag-profile-image-edit">
+              <div className="tag-profil-image-edit">
                 <i className="fas fa-camera"></i>
+                <span>Changer la photo</span>
               </div>
             )}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageChange}
+              accept="image/*"
+              style={{ display: "none" }}
+            />
           </div>
-          <div className="tag-profile-username">{`${user.prenom} ${user.nom}`}</div>
-          <div className="tag-profile-handle">@{user.commune}</div>
+          <div className="tag-profil-username">{`${
+            editedUser?.prenom || user.prenom
+          } ${editedUser?.nom || user.nom}`}</div>
+          <div className="tag-profil-handle">{user.fonction}</div>
           {!isEditing && (
             <button className="tag-profil-edit-btn" onClick={handleEdit}>
-              Modifier le profil
+              Modifier
             </button>
           )}
         </div>
@@ -92,89 +229,94 @@ const Profil = () => {
         )}
 
         <div className="tag-profil-info">
-          <div className="tag-profil-info-group">
-            <label>Nom</label>
-            {isEditing ? (
-              <input
-                type="text"
-                value={editedUser.nom}
-                onChange={(e) =>
-                  setEditedUser({ ...editedUser, nom: e.target.value })
-                }
-              />
-            ) : (
-              <p>{user.nom}</p>
-            )}
-          </div>
-
-          <div className="tag-profil-info-group">
-            <label>Prénom</label>
-            {isEditing ? (
-              <input
-                type="text"
-                value={editedUser.prenom}
-                onChange={(e) =>
-                  setEditedUser({ ...editedUser, prenom: e.target.value })
-                }
-              />
-            ) : (
-              <p>{user.prenom}</p>
-            )}
-          </div>
-
-          <div className="tag-profil-info-group">
-            <label>Email</label>
-            {isEditing ? (
-              <input
-                type="email"
-                value={editedUser.email}
-                onChange={(e) =>
-                  setEditedUser({ ...editedUser, email: e.target.value })
-                }
-              />
-            ) : (
-              <p>{user.email}</p>
-            )}
-          </div>
-
-          <div className="tag-profil-info-group">
-            <label>Fonction</label>
-            <p>{user.fonction}</p>
-          </div>
-
-          <div className="tag-profil-info-group">
-            <label>Commune</label>
-            <p>{user.commune}</p>
-          </div>
-
-          <div className="tag-profil-info-group">
-            <label>Permissions</label>
-            <p>{user.permissions}</p>
-          </div>
+          {!isEditing ? (
+            <>
+              <div className="tag-profil-info-group">
+                <label>Email</label>
+                <p>{user.email}</p>
+              </div>
+              <div className="tag-profil-info-group">
+                <label>Commune</label>
+                <p>{communeName || "Chargement..."}</p>
+              </div>
+              <div className="tag-profil-info-group">
+                <label>Fonction</label>
+                <p>{user.fonction}</p>
+              </div>
+              <div className="tag-profil-info-group">
+                <label>Permissions</label>
+                <p>{user.permissions}</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="tag-profil-info-group">
+                <label>Nom</label>
+                <input
+                  type="text"
+                  value={editedUser.nom}
+                  onChange={(e) =>
+                    setEditedUser({ ...editedUser, nom: e.target.value })
+                  }
+                />
+              </div>
+              <div className="tag-profil-info-group">
+                <label>Prénom</label>
+                <input
+                  type="text"
+                  value={editedUser.prenom}
+                  onChange={(e) =>
+                    setEditedUser({ ...editedUser, prenom: e.target.value })
+                  }
+                />
+              </div>
+              <div className="tag-profil-info-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  value={editedUser.email}
+                  onChange={(e) =>
+                    setEditedUser({ ...editedUser, email: e.target.value })
+                  }
+                />
+              </div>
+              <div className="tag-profil-info-group">
+                <label>Commune</label>
+                <select
+                  value={editedUser.commune}
+                  onChange={(e) =>
+                    setEditedUser({ ...editedUser, commune: e.target.value })
+                  }
+                  className="tag-profil-select"
+                >
+                  {communes.map((commune) => (
+                    <option key={commune._id} value={commune._id}>
+                      {commune.nom}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
         </div>
 
         {!isEditing ? (
           <div className="tag-profil-menu">
-            <div className="tag-profil-menu-item">
+            <button className="tag-profil-edit-btn" onClick={handleEdit}>
+              <i className="fas fa-edit"></i>
+              Modifier le profil
+            </button>
+            <button
+              className="tag-profil-parametres-btn"
+              onClick={() => setShowParametres(!showParametres)}
+            >
               <i className="fas fa-cog"></i>
-              Paramètres
-            </div>
-            <div className="tag-profil-menu-item">
-              <i className="fas fa-credit-card"></i>
-              Détails de facturation
-            </div>
-            <div className="tag-profil-menu-item">
-              <i className="fas fa-users"></i>
-              Gestion des utilisateurs
-            </div>
-            <div className="tag-profil-menu-item">
-              <i className="fas fa-info-circle"></i>
-              Informations
-            </div>
-            <div className="tag-profil-menu-item logout" onClick={handleLogout}>
+              {showParametres ? "Masquer les paramètres" : "Paramètres"}
+            </button>
+            <button className="tag-profil-logout-btn" onClick={handleLogout}>
               <i className="fas fa-sign-out-alt"></i>
               Se déconnecter
-            </div>
+            </button>
           </div>
         ) : (
           <div className="tag-profil-actions">
@@ -189,6 +331,8 @@ const Profil = () => {
             </button>
           </div>
         )}
+
+        {showParametres && <Parametres />}
       </div>
     </div>
   );

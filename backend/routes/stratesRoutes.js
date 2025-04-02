@@ -3,6 +3,51 @@ const router = express.Router();
 const StrateCommune = require("../models/StrateCommune");
 const { authMiddleware } = require("../middleware/authMiddleware");
 
+// Initialiser les strates par défaut
+router.post("/init", authMiddleware, async (req, res) => {
+  try {
+    if (!req.user.permissions.includes("admin")) {
+      return res.status(403).json({ message: "Accès non autorisé" });
+    }
+
+    // Supprimer toutes les strates existantes
+    await StrateCommune.deleteMany({});
+
+    // Créer les strates par défaut
+    const strates = [
+      {
+        nom: "Moins de 100 habitants",
+        description: "Communes de moins de 100 habitants",
+        populationMin: 0,
+        populationMax: 99,
+        actif: true,
+      },
+      {
+        nom: "Entre 100 et 500 habitants",
+        description: "Communes entre 100 et 500 habitants",
+        populationMin: 100,
+        populationMax: 499,
+        actif: true,
+      },
+      {
+        nom: "Plus de 500 habitants",
+        description: "Communes de plus de 500 habitants",
+        populationMin: 500,
+        populationMax: 999999,
+        actif: true,
+      },
+    ];
+
+    await StrateCommune.insertMany(strates);
+    res
+      .status(201)
+      .json({ message: "Strates initialisées avec succès", strates });
+  } catch (error) {
+    console.error("❌ Erreur lors de l'initialisation des strates :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
 // 📌 Récupérer toutes les strates
 router.get("/", authMiddleware, async (req, res) => {
   try {

@@ -1,0 +1,134 @@
+.tag-parametres-container {
+  padding: 30px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.tag-parametres-container h2 {
+  font-size: 1.8rem;
+  color: #2d3436;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+.tag-parametres-section {
+  margin-bottom: 40px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.tag-parametres-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.tag-parametres-section h3 {
+  font-size: 1.3rem;
+  color: #2d3436;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.tag-parametres-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.tag-parametres-btn,
+.tag-parametres-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  border: none;
+  background: #f8f9fa;
+  color: #2d3436;
+}
+
+.tag-parametres-btn:hover,
+.tag-parametres-link:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+}
+
+.tag-parametres-btn i,
+.tag-parametres-link i {
+  font-size: 1.1rem;
+  color: #0984e3;
+}
+
+.tag-parametres-btn-danger {
+  background: #fff5f5;
+  color: #ff7675;
+}
+
+.tag-parametres-btn-danger:hover {
+  background: #ffe3e3;
+}
+
+.tag-parametres-btn-danger i {
+  color: #ff7675;
+}
+
+.tag-parametres-confirm {
+  background: #fff5f5;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+.tag-parametres-confirm p {
+  color: #ff7675;
+  margin-bottom: 15px;
+  font-size: 0.95rem;
+}
+
+.tag-parametres-confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.tag-parametres-error,
+.tag-parametres-success {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.tag-parametres-error {
+  background: #fff5f5;
+  color: #ff7675;
+  border: 1px solid #ff7675;
+}
+
+.tag-parametres-success {
+  background: #f0fff4;
+  color: #00b894;
+  border: 1px solid #00b894;
+}
+
+@media (max-width: 768px) {
+  .tag-parametres-container {
+    padding: 20px;
+  }
+
+  .tag-parametres-confirm-actions {
+    flex-direction: column;
+  }
+
+  .tag-parametres-btn,
+  .tag-parametres-link {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,6 +1,7 @@
 /* Importer la police */
 @import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700&display=swap");
 
+/* Reset CSS */
 * {
   box-sizing: border-box;
   margin: 0;

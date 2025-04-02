@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/AdminPanel.css";
+import ModalSubmit from "../components/ModalSubmit";
 
 const AdminPanel = () => {
   const [users, setUsers] = useState([]);
@@ -9,6 +10,9 @@ const AdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false); // ✅ Gère l'affichage de la modal
   const [showPassword, setShowPassword] = useState(false); // ✅ État pour afficher/cacher le mdp
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("");
+  const [submitType, setSubmitType] = useState("success");
 
   const [communes, setCommunes] = useState([]); // ✅ Stocke les communes depuis la BDD
   const [fonctions, setFonctions] = useState([]); // ✅ Stocke les fonctions depuis la BDD
@@ -20,8 +24,7 @@ const AdminPanel = () => {
     fonction: "",
     commune: "",
     telephone: "",
-    password: "",
-    role: "utilisateur",
+    permissions: "user",
     isValidated: false,
   });
 
@@ -73,6 +76,11 @@ const AdminPanel = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      setSubmitMessage(
+        `Utilisateur ${isValidated ? "désactivé" : "activé"} avec succès !`
+      );
+      setSubmitType("success");
+      setShowSubmitModal(true);
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user._id === userId
@@ -81,6 +89,9 @@ const AdminPanel = () => {
         )
       );
     } catch (err) {
+      setSubmitMessage("Erreur lors de la mise à jour du statut.");
+      setSubmitType("error");
+      setShowSubmitModal(true);
       console.error("Erreur de mise à jour :", err);
     }
   };
@@ -97,8 +108,14 @@ const AdminPanel = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      setSubmitMessage("Utilisateur supprimé avec succès !");
+      setSubmitType("success");
+      setShowSubmitModal(true);
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
     } catch (err) {
+      setSubmitMessage("Erreur lors de la suppression de l'utilisateur.");
+      setSubmitType("error");
+      setShowSubmitModal(true);
       console.error("Erreur de suppression :", err);
     }
   };
@@ -120,7 +137,7 @@ const AdminPanel = () => {
   };
 
   const filteredUsers = users.filter((user) =>
-    `${user.nom} ${user.prenom} ${user.email} ${user.role}`
+    `${user.nom} ${user.prenom} ${user.email} ${user.permissions}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
@@ -143,8 +160,10 @@ const AdminPanel = () => {
         }
       );
 
-      alert("Utilisateur créé avec succès !");
-      setUsers([...users, res.data.user]); // Met à jour la liste des utilisateurs
+      setSubmitMessage("Utilisateur créé avec succès !");
+      setSubmitType("success");
+      setShowSubmitModal(true);
+      setUsers([...users, res.data.user]);
       setShowModal(false);
       setNewUser({
         nom: "",
@@ -153,15 +172,16 @@ const AdminPanel = () => {
         fonction: "",
         commune: "",
         telephone: "",
-        password: "",
-        role: "utilisateur",
+        permissions: "user",
         isValidated: false,
       });
     } catch (error) {
-      alert(
+      setSubmitMessage(
         error.response?.data?.message ||
           "Erreur lors de la création de l'utilisateur."
       );
+      setSubmitType("error");
+      setShowSubmitModal(true);
     }
   };
 
@@ -264,32 +284,27 @@ const AdminPanel = () => {
                   <option disabled>Chargement...</option>
                 ) : (
                   communes.map((commune) => (
-                    <option key={commune._id} value={commune.nom}>
+                    <option key={commune._id} value={commune._id}>
                       {commune.nom}
                     </option>
                   ))
                 )}
               </select>
 
-              {/* ✅ Champ mot de passe avec bouton afficher/cacher */}
-              <div className="password-container">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Mot de passe (optionnel)"
-                  value={newUser.password}
-                  onChange={handleInputChange}
-                />
-                <button
-                  type="button"
-                  className="toggle-password "
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? "Cacher" : " Voir"}
-                </button>
-              </div>
+              <label>Permissions :</label>
+              <select
+                name="permissions"
+                value={newUser.permissions}
+                onChange={handleInputChange}
+              >
+                <option value="user">Utilisateur</option>
+                <option value="juriste">Juriste</option>
+                <option value="admin">Administrateur</option>
+              </select>
 
-              <button className="button1" type="submit">Créer l'utilisateur</button>
+              <button className="button1" type="submit">
+                Créer l'utilisateur
+              </button>
             </form>
           </div>
         </div>
@@ -317,9 +332,9 @@ const AdminPanel = () => {
                     : "⬇"
                   : "⬍"}
               </th>
-              <th className="sortable" onClick={() => sortUsers("role")}>
-                Rôle{" "}
-                {sortConfig.key === "role"
+              <th className="sortable" onClick={() => sortUsers("permissions")}>
+                Permissions{" "}
+                {sortConfig.key === "permissions"
                   ? sortConfig.direction === "asc"
                     ? "⬆"
                     : "⬇"
@@ -343,7 +358,7 @@ const AdminPanel = () => {
                   {user.nom} {user.prenom}
                 </td>
                 <td>{user.email}</td>
-                <td>{user.role}</td>
+                <td>{user.permissions}</td>
                 <td
                   className={`status ${
                     user.isValidated ? "validated" : "not-validated"
@@ -370,6 +385,13 @@ const AdminPanel = () => {
           </tbody>
         </table>
       </div>
+
+      <ModalSubmit
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        message={submitMessage}
+        type={submitType}
+      />
     </div>
   );
 };

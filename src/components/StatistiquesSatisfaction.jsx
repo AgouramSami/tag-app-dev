@@ -1,98 +1,293 @@
-import React, { useState, useEffect } from "react";
-import PropTypes from "prop-types";
-import "../styles/StatistiquesSatisfaction.css";
+import React from "react";
+import {
+  Paper,
+  Typography,
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
+  useTheme,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import GroupsIcon from "@mui/icons-material/Groups";
+import CategoryIcon from "@mui/icons-material/Category";
 
-const StatistiquesSatisfaction = () => {
-  const [statistiques, setStatistiques] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const StatistiquesSatisfaction = ({
+  statsCommune = [],
+  statsTheme = [],
+  statsStrate = [],
+  statsSatisfactionCommune = [],
+  statsSatisfactionStrate = [],
+}) => {
+  const theme = useTheme();
 
-  useEffect(() => {
-    const fetchStatistiques = async () => {
-      try {
-        const token = sessionStorage.getItem("token");
-        const response = await fetch(
-          "http://localhost:5000/api/demandes/stats/satisfaction",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des statistiques");
-        }
-        const data = await response.json();
-        setStatistiques(data);
-      } catch (err) {
-        setError(err.message);
-        console.error("Erreur:", err);
-      } finally {
-        setLoading(false);
-      }
+  // Fusionner les données de satisfaction avec les données de base des communes
+  const communesData = statsCommune.map((commune) => {
+    const satisfaction = statsSatisfactionCommune.find(
+      (s) => s.commune === commune.commune
+    );
+    return {
+      ...commune,
+      noteMoyenne: satisfaction ? satisfaction.noteMoyenne : 0,
     };
+  });
 
-    fetchStatistiques();
-  }, []);
+  // Style personnalisé pour les tableaux
+  const tableStyles = {
+    tableContainer: {
+      backgroundColor: "white",
+      borderRadius: "4px",
+      overflow: "hidden",
+    },
+    headerCell: {
+      backgroundColor: "#f8f9fa",
+      color: "#495057",
+      fontWeight: 600,
+      borderBottom: "2px solid #dee2e6",
+    },
+    row: {
+      "&:nth-of-type(odd)": {
+        backgroundColor: "#f8f9fa",
+      },
+      "&:hover": {
+        backgroundColor: "#e9ecef",
+      },
+    },
+    cell: {
+      borderBottom: "1px solid #dee2e6",
+      color: "#212529",
+    },
+  };
 
-  if (loading) {
-    return <div className="tag-loading">Chargement des statistiques...</div>;
-  }
+  // Style pour les cartes
+  const cardStyles = {
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: "white",
+    borderRadius: "4px",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
+  };
 
-  if (error) {
-    return <div className="tag-error">{error}</div>;
+  // Vérifier si les données sont chargées
+  if (!statsCommune.length && !statsTheme.length && !statsStrate.length) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div className="tag-stats-container">
-      <h2 className="tag-stats-title">
-        Statistiques de satisfaction par strate de commune
-      </h2>
+    <Box
+      sx={{ flexGrow: 1, p: 3, backgroundColor: "#f8f9fa", minHeight: "100vh" }}
+    >
+      <Typography
+        variant="h5"
+        gutterBottom
+        sx={{
+          mb: 4,
+          color: "#212529",
+          fontWeight: 600,
+          textAlign: "left",
+        }}
+      >
+        Tableau de bord statistique
+      </Typography>
 
-      <div className="tag-stats-grid">
-        {statistiques.map((stat) => (
-          <div key={stat.strate._id} className="tag-stats-card">
-            <h3 className="tag-strate-title">{stat.strate.nom}</h3>
-            <div className="tag-stats-content">
-              <div className="tag-stats-item">
-                <span className="tag-stats-label">Total des demandes :</span>
-                <span className="tag-stats-value">{stat.totalDemandes}</span>
-              </div>
-              <div className="tag-stats-item">
-                <span className="tag-stats-label">Note moyenne :</span>
-                <span className="tag-stats-value">
-                  {stat.noteMoyenne.toFixed(1)} / 5
-                </span>
-              </div>
-              <div className="tag-stats-item">
-                <span className="tag-stats-label">Taux de satisfaction :</span>
-                <span className="tag-stats-value">
-                  {(
-                    ((stat.distribution[4] + stat.distribution[5]) /
-                      stat.totalDemandes) *
-                    100
-                  ).toFixed(1)}
-                  %
-                </span>
-              </div>
-              <div className="tag-stars-distribution">
-                <h4>Distribution des notes :</h4>
-                {[1, 2, 3, 4, 5].map((note) => (
-                  <div key={note} className="tag-star-bar">
-                    <span className="tag-star-label">
-                      {note} étoile{note > 1 ? "s" : ""} :
-                    </span>
-                    <span className="tag-star-count">
-                      {stat.distribution[note] || 0}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        {/* Tableau 1: Statistiques par strate */}
+        <Box>
+          <Card sx={cardStyles}>
+            <CardHeader
+              avatar={<AssessmentIcon sx={{ color: "#0d6efd" }} />}
+              title={
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 600, color: "#212529" }}
+                >
+                  Statistiques par strate de commune
+                </Typography>
+              }
+            />
+            <Divider sx={{ borderColor: "#dee2e6" }} />
+            <CardContent>
+              <TableContainer sx={tableStyles.tableContainer}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={tableStyles.headerCell}>Strate</TableCell>
+                      <TableCell align="right" sx={tableStyles.headerCell}>
+                        Nombre de questions
+                      </TableCell>
+                      <TableCell align="right" sx={tableStyles.headerCell}>
+                        Note moyenne
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {statsSatisfactionStrate.map((strate) => (
+                      <TableRow key={strate.strate} sx={tableStyles.row}>
+                        <TableCell sx={tableStyles.cell}>
+                          {strate.strate}
+                        </TableCell>
+                        <TableCell align="right" sx={tableStyles.cell}>
+                          {strate.totalDemandes}
+                        </TableCell>
+                        <TableCell align="right" sx={tableStyles.cell}>
+                          {strate.noteMoyenne ? (
+                            <Box
+                              sx={{
+                                color:
+                                  strate.noteMoyenne >= 4
+                                    ? "#198754"
+                                    : strate.noteMoyenne >= 3
+                                    ? "#ffc107"
+                                    : "#dc3545",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {strate.noteMoyenne.toFixed(2)} / 5
+                            </Box>
+                          ) : (
+                            "0.00 / 5"
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Box>
+
+        {/* Tableau 2: Questions par thème */}
+        <Box>
+          <Card sx={cardStyles}>
+            <CardHeader
+              avatar={<CategoryIcon sx={{ color: "#0d6efd" }} />}
+              title={
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 600, color: "#212529" }}
+                >
+                  Questions par thème
+                </Typography>
+              }
+            />
+            <Divider sx={{ borderColor: "#dee2e6" }} />
+            <CardContent>
+              <TableContainer sx={tableStyles.tableContainer}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={tableStyles.headerCell}>Thème</TableCell>
+                      <TableCell align="right" sx={tableStyles.headerCell}>
+                        Nombre de questions
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {statsTheme.map((theme) => (
+                      <TableRow key={theme.theme} sx={tableStyles.row}>
+                        <TableCell sx={tableStyles.cell}>
+                          {theme.theme}
+                        </TableCell>
+                        <TableCell align="right" sx={tableStyles.cell}>
+                          {theme.count}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Box>
+
+        {/* Tableau 3: Statistiques par commune */}
+        <Box>
+          <Card sx={cardStyles}>
+            <CardHeader
+              avatar={<GroupsIcon sx={{ color: "#0d6efd" }} />}
+              title={
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 600, color: "#212529" }}
+                >
+                  Statistiques par commune
+                </Typography>
+              }
+            />
+            <Divider sx={{ borderColor: "#dee2e6" }} />
+            <CardContent>
+              <TableContainer sx={tableStyles.tableContainer}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={tableStyles.headerCell}>Commune</TableCell>
+                      <TableCell align="right" sx={tableStyles.headerCell}>
+                        Nombre de questions
+                      </TableCell>
+                      <TableCell align="right" sx={tableStyles.headerCell}>
+                        Taux de satisfaction
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {communesData.map((commune) => (
+                      <TableRow key={commune.commune} sx={tableStyles.row}>
+                        <TableCell sx={tableStyles.cell}>
+                          {commune.commune}
+                        </TableCell>
+                        <TableCell align="right" sx={tableStyles.cell}>
+                          {commune.count}
+                        </TableCell>
+                        <TableCell align="right" sx={tableStyles.cell}>
+                          <Box
+                            sx={{
+                              color:
+                                commune.noteMoyenne >= 4
+                                  ? "#198754"
+                                  : commune.noteMoyenne >= 3
+                                  ? "#ffc107"
+                                  : "#dc3545",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {commune.noteMoyenne
+                              ? commune.noteMoyenne.toFixed(2)
+                              : "0.00"}{" "}
+                            / 5
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

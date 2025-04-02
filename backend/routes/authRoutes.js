@@ -7,6 +7,9 @@ const {
   authMiddleware,
   adminMiddleware,
 } = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 // Vérification de la force du mot de passe
@@ -90,6 +93,7 @@ router.post("/login", async (req, res) => {
         telephone: user.telephone,
         isValidated: user.isValidated,
         isActive: user.isActive,
+        photoUrl: user.photoUrl || "/default-avatar.png",
       },
     });
   } catch (error) {
@@ -219,7 +223,7 @@ router.post("/reset-password", async (req, res) => {
 // Route pour mettre à jour le profil utilisateur
 router.put("/update-profile", authMiddleware, async (req, res) => {
   try {
-    const { nom, prenom, email } = req.body;
+    const { nom, prenom, email, photoUrl } = req.body;
     const userId = req.user._id;
 
     // Vérifier si l'email est déjà utilisé par un autre utilisateur
@@ -233,7 +237,7 @@ router.put("/update-profile", authMiddleware, async (req, res) => {
     // Mettre à jour l'utilisateur
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { nom, prenom, email },
+      { nom, prenom, email, photoUrl },
       { new: true }
     ).select("-password");
 
@@ -247,6 +251,111 @@ router.put("/update-profile", authMiddleware, async (req, res) => {
     res
       .status(500)
       .json({ message: "Erreur lors de la mise à jour du profil" });
+  }
+});
+
+// Route pour télécharger la photo de profil
+router.post(
+  "/upload-photo",
+  authMiddleware,
+  upload.single("photo"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ message: "Aucun fichier n'a été téléchargé" });
+      }
+
+      const userId = req.user._id;
+      const photoUrl = `/uploads/${req.file.filename}`;
+
+      // Mettre à jour l'utilisateur avec la nouvelle URL de la photo
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { photoUrl },
+        { new: true }
+      ).select("-password");
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Utilisateur non trouvé" });
+      }
+
+      res.status(200).json({ photoUrl: updatedUser.photoUrl });
+    } catch (error) {
+      console.error("Erreur lors du téléchargement de la photo:", error);
+      res
+        .status(500)
+        .json({ message: "Erreur lors du téléchargement de la photo" });
+    }
+  }
+);
+
+// Route pour la réinitialisation du mot de passe
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Vérifier si l'utilisateur existe
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        message: "Aucun compte n'est associé à cet email.",
+      });
+    }
+
+    // Générer un token de réinitialisation
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = Date.now() + 3600000; // 1 heure
+
+    await user.save();
+
+    // Créer le lien de réinitialisation
+    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+
+    // Envoyer l'email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Réinitialisation de votre mot de passe",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #012947; text-align: center;">Réinitialisation de votre mot de passe</h2>
+          <p>Bonjour,</p>
+          <p>Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour le réinitialiser :</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" style="background-color: #f3633f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Réinitialiser mon mot de passe</a>
+          </div>
+          <p>Ce lien expirera dans 1 heure.</p>
+          <p>Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.</p>
+          <p style="margin-top: 30px; font-size: 12px; color: #666;">Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({
+      message: "Un email de réinitialisation a été envoyé à votre adresse.",
+    });
+  } catch (error) {
+    console.error(
+      "Erreur lors de l'envoi de l'email de réinitialisation:",
+      error
+    );
+    res.status(500).json({
+      message:
+        "Une erreur est survenue lors de l'envoi de l'email de réinitialisation.",
+    });
   }
 });
 

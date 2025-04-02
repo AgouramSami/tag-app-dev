@@ -23,7 +23,7 @@ const authMiddleware = async (req, res, next) => {
 
 // Middleware d'autorisation pour les admins
 const adminMiddleware = (req, res, next) => {
-  if (!req.user || req.user.role !== "admin") {
+  if (!req.user || req.user.permissions !== "admin") {
     return res
       .status(403)
       .json({ message: "Accès refusé. Administrateur requis." });

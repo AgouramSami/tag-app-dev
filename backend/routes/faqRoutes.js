@@ -17,17 +17,18 @@ router.get("/", async (req, res) => {
 // 📌 📤 Ajouter une nouvelle FAQ (🔒 Réservé aux juristes)
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    if (req.user.role !== "juriste") {
+    if (req.user.permissions !== "juriste") {
       return res.status(403).json({ message: "Accès refusé" });
     }
 
-    const { question, reponse } = req.body;
+    const { theme, question, reponse } = req.body;
 
-    if (!question || !reponse) {
+    if (!question || !reponse || !theme) {
       return res.status(400).json({ message: "Tous les champs sont requis." });
     }
 
     const nouvelleFAQ = new FAQ({
+      theme,
       question,
       reponse,
       auteur: req.user._id,
@@ -46,7 +47,7 @@ router.post("/", authMiddleware, async (req, res) => {
 // 📌 🗑️ Supprimer une FAQ (🔒 Réservé aux juristes)
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
-    if (req.user.role !== "juriste") {
+    if (req.user.permissions !== "juriste") {
       return res.status(403).json({ message: "Accès refusé" });
     }
 
@@ -94,6 +95,37 @@ router.get("/search", async (req, res) => {
     res.json(filteredFaqs.slice(0, 5)); // Limite à 5 résultats
   } catch (error) {
     console.error("❌ Erreur lors de la recherche des FAQ :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// 📌 ✏️ Modifier une FAQ (🔒 Réservé aux juristes)
+router.put("/:id", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.permissions !== "juriste") {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+
+    const { theme, question, reponse } = req.body;
+
+    if (!question || !reponse) {
+      return res.status(400).json({ message: "Tous les champs sont requis." });
+    }
+
+    const faq = await FAQ.findById(req.params.id);
+    if (!faq) {
+      return res.status(404).json({ message: "FAQ non trouvée" });
+    }
+
+    faq.theme = theme;
+    faq.question = question;
+    faq.reponse = reponse;
+    faq.dateModification = new Date();
+
+    await faq.save();
+    res.status(200).json({ message: "FAQ modifiée avec succès", faq });
+  } catch (error) {
+    console.error("❌ Erreur lors de la modification de la FAQ :", error);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });

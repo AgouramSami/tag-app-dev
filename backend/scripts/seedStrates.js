@@ -16,22 +16,22 @@ const seedStrates = async () => {
     // Création des strates
     const strates = [
       {
-        nom: "Petite commune",
+        nom: "Petite commune (<100 hbts)",
         description: "Communes de moins de 100 habitants",
         populationMin: 0,
         populationMax: 99,
       },
       {
-        nom: "Commune moyenne",
+        nom: "Commune moyenne (100-499 hbts)",
         description: "Communes de 100 à 500 habitants",
         populationMin: 100,
         populationMax: 499,
       },
       {
-        nom: "Grande commune",
+        nom: "Grande commune (500+ hbts)",
         description: "Communes de plus de 500 habitants",
         populationMin: 500,
-        populationMax: 999999, // Valeur maximale pour représenter "plus de 500"
+        populationMax: 999999,
       },
     ];
 

@@ -27,12 +27,17 @@ const userSchema = new mongoose.Schema({
     default: "administrateur",
   },
   commune: {
-    type: String,
-    default: "Upernavik",
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Commune",
+    required: true,
   },
   telephone: {
     type: String,
     default: "",
+  },
+  photoUrl: {
+    type: String,
+    default: "/default-avatar.png",
   },
   isValidated: {
     type: Boolean,

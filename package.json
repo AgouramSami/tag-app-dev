@@ -2,11 +2,12 @@
   "name": "tag_app",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "lint:frontend": "eslint src",
+    "lint:backend": "eslint backend",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,26 +1,31 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import "../styles/ResetPassword.css"; // Ajoute un fichier de style
+import "../styles/ResetPassword.css";
+import tagLogo from "../assets/tag_logo.svg";
 
 const ResetPassword = () => {
-  const { token } = useParams(); // Récupère le token depuis l'URL
-  const navigate = useNavigate();
+  const { token } = useParams();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage("");
+    setError("");
 
     if (newPassword !== confirmPassword) {
       setError("Les mots de passe ne correspondent pas.");
       return;
     }
 
+    setLoading(true);
+
     try {
-      const res = await axios.post(
+      const response = await axios.post(
         "http://localhost:5000/api/auth/reset-password",
         {
           token,
@@ -28,46 +33,60 @@ const ResetPassword = () => {
         }
       );
 
-      setMessage(res.data.message);
-      setError("");
-      setTimeout(() => navigate("/login"), 3000); // Redirection après 3 sec
+      setMessage(response.data.message);
+      setNewPassword("");
+      setConfirmPassword("");
     } catch (err) {
-      setError(err.response?.data?.message || "Erreur serveur.");
+      setError(err.response?.data?.message || "Une erreur est survenue.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="reset-password-container">
-      <h2>🔑 Réinitialiser mon mot de passe</h2>
-      {message ? (
-        <p className="success-message">{message}</p>
-      ) : (
-        <form onSubmit={handleSubmit} className="reset-password-form">
-          <label>Nouveau mot de passe :</label>
+      <div className="reset-password-card">
+        <div className="logo-container">
+          <img src={tagLogo} alt="TAG Logo" className="logo" />
+        </div>
+
+        <h2 className="reset-title">Réinitialisation du mot de passe</h2>
+
+        <form onSubmit={handleSubmit}>
+          <label className="label_signup">Nouveau mot de passe</label>
           <input
+            className="input_signup"
             type="password"
-            placeholder="Entrez un nouveau mot de passe"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
+            placeholder="********"
           />
 
-          <label>Confirmer le mot de passe :</label>
+          <label className="label_signup">Confirmer le mot de passe</label>
           <input
+            className="input_signup"
             type="password"
-            placeholder="Confirmez votre mot de passe"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
+            placeholder="********"
           />
 
+          <button className="button1" type="submit" disabled={loading}>
+            {loading
+              ? "Réinitialisation en cours..."
+              : "Réinitialiser le mot de passe"}
+          </button>
+
+          {message && <p className="success-message">{message}</p>}
           {error && <p className="error-message">{error}</p>}
 
-          <button className="button1" type="submit">
-            🔒 Mettre à jour
-          </button>
+          <p>
+            Retour à la <Link to="/login">connexion</Link>
+          </p>
         </form>
-      )}
+      </div>
     </div>
   );
 };

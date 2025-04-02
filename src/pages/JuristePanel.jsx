@@ -83,9 +83,14 @@ const JuristePanel = () => {
     try {
       const token = sessionStorage.getItem("token");
       const formData = new FormData();
-      formData.append("reponse", reponse.texte);
 
-      // Ajouter les fichiers s'ils existent
+      if (!reponse.texte) {
+        throw new Error("Le texte de la réponse est requis");
+      }
+
+      formData.append("texte", reponse.texte);
+      formData.append("statut", "traitée");
+
       if (reponse.fichier) {
         formData.append("fichiersReponse", reponse.fichier);
       }
@@ -93,6 +98,7 @@ const JuristePanel = () => {
       console.log("📤 Envoi de la réponse:", {
         texte: reponse.texte,
         fichier: reponse.fichier?.name,
+        statut: "traitée",
       });
 
       const response = await fetch(
@@ -117,17 +123,18 @@ const JuristePanel = () => {
       const updatedDemande = await response.json();
       console.log("✅ Réponse envoyée avec succès:", updatedDemande);
 
-      // Mettre à jour la liste des demandes
-      setDemandes(
-        demandes.map((d) =>
+      setDemandes((prevDemandes) =>
+        prevDemandes.map((d) =>
           d._id === demandeSelectionnee._id ? updatedDemande.demande : d
         )
       );
 
       setDemandeSelectionnee(null);
-    } catch (err) {
-      console.error("❌ Erreur:", err);
-      alert("Une erreur est survenue lors de l'envoi de la réponse");
+    } catch (error) {
+      console.error("❌ Erreur:", error);
+      alert(
+        error.message || "Une erreur est survenue lors de l'envoi de la réponse"
+      );
     }
   };
 
@@ -159,6 +166,7 @@ const JuristePanel = () => {
         demande={demandeSelectionnee}
         onSubmit={handleSubmitReponse}
         onRetour={handleRetour}
+        isJuriste={true}
       />
     );
   }
@@ -174,27 +182,26 @@ const JuristePanel = () => {
         </div>
       </div>
 
-      <div className="juriste-panel-filters">
-        <div className="search-container">
-          <i className="fas fa-search search-icon"></i>
+      <div className="tag-filters-container">
+        <div className="tag-filter-group">
+          <label>Rechercher</label>
           <input
             type="text"
-            className="search-input"
-            placeholder="Rechercher une demande..."
+            placeholder="Rechercher par objet ou numéro de demande..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="filter-container">
+        <div className="tag-filter-group">
+          <label>Statut</label>
           <select
-            className="filter-select"
             value={filtreStatut}
             onChange={(e) => setFiltreStatut(e.target.value)}
           >
             <option value="tous">Tous les statuts</option>
             <option value="en attente">En attente</option>
             <option value="en cours">En cours</option>
-            <option value="répondu">Répondu</option>
+            <option value="traitée">Traitée</option>
             <option value="clôturé">Clôturé</option>
           </select>
         </div>

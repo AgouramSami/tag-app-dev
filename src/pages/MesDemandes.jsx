@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import RGPDNotice from "../components/RGPDNotice";
 import CardDemande from "../components/CardDemande";
+import ConsulterDemande from "../components/ConsulterDemande";
 import "../styles/MesDemandes.css";
 
 const API_URL = "http://localhost:5000";
@@ -88,6 +89,13 @@ const MesDemandes = () => {
     }
   };
 
+  const handleRetour = () => {
+    setSelectedDemande(null);
+    setReponse("");
+    setFichier(null);
+    setErreurFichier("");
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -119,7 +127,7 @@ const MesDemandes = () => {
   const handleSubmitReponse = async (e) => {
     e.preventDefault();
     if (!reponse.trim()) {
-      alert("Veuillez entrer une réponse");
+      alert("Veuillez entrer un message");
       return;
     }
 
@@ -127,9 +135,17 @@ const MesDemandes = () => {
       const token = sessionStorage.getItem("token");
       const formData = new FormData();
       formData.append("texte", reponse);
+      formData.append("type", "demande");
+      formData.append("estJuriste", false);
+
       if (fichier) {
-        formData.append("fichier", fichier);
+        formData.append("fichiers", fichier);
       }
+
+      console.log("📤 Envoi de la réponse:", {
+        texte: reponse,
+        fichier: fichier?.name,
+      });
 
       const response = await fetch(
         `${API_URL}/api/demandes/${selectedDemande._id}/message`,
@@ -142,35 +158,67 @@ const MesDemandes = () => {
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Erreur lors de l'envoi de la réponse");
+      console.log("Fetch a fini de se charger :", response.url);
+
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (error) {
+        console.error("Erreur lors de la lecture de la réponse:", error);
+        throw new Error("Erreur lors de la lecture de la réponse");
       }
 
-      const data = await response.json();
-      setSelectedDemande(data);
+      if (!response.ok) {
+        throw new Error(
+          responseData.message || "Erreur lors de l'envoi du message"
+        );
+      }
+
+      // Mettre à jour la demande avec le nouveau message
+      const updatedDemande = {
+        ...selectedDemande,
+        messages: [...selectedDemande.messages, responseData.message],
+      };
+
+      setSelectedDemande(updatedDemande);
       setReponse("");
       setFichier(null);
       setErreurFichier("");
     } catch (err) {
-      console.error("❌ Erreur:", err);
-      alert("Une erreur est survenue lors de l'envoi de la réponse");
+      console.error("❌ Erreur détaillée:", err);
+      if (err.message) {
+        console.error("Message d'erreur:", err.message);
+      }
+      alert(
+        "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer."
+      );
     }
   };
 
   const handleCloturer = (demande) => {
+    if (demande.statut !== "traitée") {
+      alert("La demande doit être en statut 'traitée' pour être clôturée");
+      return;
+    }
     setDemandeToClose(demande);
     setShowRatingModal(true);
   };
 
   const handleRatingSubmit = async () => {
+    if (note < 1 || note > 5) {
+      alert("Veuillez donner une note entre 1 et 5");
+      return;
+    }
+
     try {
+      const token = sessionStorage.getItem("token");
       const response = await fetch(
         `${API_URL}/api/demandes/${demandeToClose._id}/cloturer`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ note }),
         }
@@ -182,11 +230,14 @@ const MesDemandes = () => {
 
       const updatedDemande = await response.json();
       setDemandes(
-        demandes.map((d) => (d._id === updatedDemande._id ? updatedDemande : d))
+        demandes.map((d) =>
+          d._id === updatedDemande.demande._id ? updatedDemande.demande : d
+        )
       );
       setShowRatingModal(false);
       setNote(0);
       setDemandeToClose(null);
+      alert("Demande clôturée avec succès !");
     } catch (error) {
       console.error("Erreur:", error);
       alert("Une erreur est survenue lors de la clôture de la demande");
@@ -215,36 +266,49 @@ const MesDemandes = () => {
     <div className="mes-demandes-container">
       <div className="mes-demandes-header">
         <h1 className="mes-demandes-title">Mes Demandes</h1>
-        <div className="mes-demandes-filters">
-          <input
-            type="text"
-            placeholder="Rechercher une demande..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-bar"
-          />
-          <select
-            value={filtreStatut}
-            onChange={(e) => setFiltreStatut(e.target.value)}
-            className="search-bar"
-          >
-            <option value="tous">Tous les statuts</option>
-            <option value="en attente">En attente</option>
-            <option value="en cours">En cours</option>
-            <option value="traitée">Traitée</option>
-            <option value="archivée">Archivée</option>
-          </select>
+        <div className="tag-filters-container">
+          <div className="tag-filter-group">
+            <label>Rechercher</label>
+            <input
+              type="text"
+              placeholder="Rechercher par objet ou numéro de demande..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="tag-filter-group">
+            <label>Statut</label>
+            <select
+              value={filtreStatut}
+              onChange={(e) => setFiltreStatut(e.target.value)}
+            >
+              <option value="tous">Tous les statuts</option>
+              <option value="en attente">En attente</option>
+              <option value="traitée">Traitée</option>
+              <option value="archivée">Archivée</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {selectedDemande && selectedDemande._id ? (
         <div className="mes-demande-detail">
-          <button
-            onClick={() => setSelectedDemande(null)}
-            className="mes-demande-btn mes-demande-btn-voir"
-          >
-            <i className="fas fa-arrow-left"></i> Retour aux demandes
-          </button>
+          <div className="mes-demande-actions">
+            <button
+              className="mes-demande-btn mes-demande-btn-voir"
+              onClick={() => navigate("/mes-demandes")}
+            >
+              Retour aux demandes
+            </button>
+            {selectedDemande.statut === "traitée" && (
+              <button
+                className="mes-demande-btn mes-demande-btn-cloturer"
+                onClick={() => handleCloturer(selectedDemande)}
+              >
+                Clôturer la demande
+              </button>
+            )}
+          </div>
 
           <div className="demande-content">
             <h2>Détail de la demande</h2>
@@ -258,10 +322,6 @@ const MesDemandes = () => {
                 {selectedDemande.theme || "Aucun thème spécifié"}
               </p>
               <p>
-                <strong>Demande :</strong>{" "}
-                {selectedDemande.description || "Aucune description"}
-              </p>
-              <p>
                 <strong>Statut :</strong>{" "}
                 <span
                   className={`mes-demande-status ${
@@ -273,134 +333,37 @@ const MesDemandes = () => {
               </p>
             </div>
 
-            {/* Affichage de la réponse du juriste */}
-            {selectedDemande.reponse && selectedDemande.reponse.texte ? (
-              <div className="reponse-section">
-                <h3>Réponse du juriste</h3>
-                <div className="reponse-content">
-                  <p>{selectedDemande.reponse.texte}</p>
-                  <p>
-                    <strong>Répondu par :</strong>{" "}
-                    {selectedDemande.reponse.juriste
-                      ? `${selectedDemande.reponse.juriste.nom} ${selectedDemande.reponse.juriste.prenom}`
-                      : "Juriste non spécifié"}
-                  </p>
-
-                  {/* Pièces jointes envoyées par le juriste */}
-                  {selectedDemande.reponse.fichiers &&
-                    selectedDemande.reponse.fichiers.length > 0 && (
-                      <div className="mes-demande-pj-container">
-                        <h4>Pièces jointes du juriste :</h4>
-                        <ul className="mes-demande-pj-list">
-                          {selectedDemande.reponse.fichiers.map(
-                            (file, index) => (
-                              <li key={index} className="mes-demande-pj-item">
-                                <a
-                                  href={`${API_URL}/uploads/${file.replace(
-                                    /^.*[\\/]/,
-                                    ""
-                                  )}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  <i className="fas fa-paperclip"></i>
-                                  {file.replace(/^.*[\\/]/, "")}
-                                </a>
-                              </li>
-                            )
-                          )}
-                        </ul>
-                      </div>
-                    )}
-                </div>
-              </div>
-            ) : (
-              <p>
-                <strong>Réponse :</strong> Aucune réponse pour le moment.
-              </p>
-            )}
-
-            {/* Formulaire de réponse */}
-            {selectedDemande.reponse && (
-              <div className="reponse-form-section">
-                <h3>Répondre au juriste</h3>
-                <form onSubmit={handleSubmitReponse} className="reponse-form">
-                  <div className="form-group">
-                    <label htmlFor="reponse">Votre réponse :</label>
-                    <textarea
-                      id="reponse"
-                      value={reponse}
-                      onChange={(e) => setReponse(e.target.value)}
-                      placeholder="Écrivez votre réponse ici..."
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="fichier">Pièce jointe (optionnel) :</label>
-                    <input
-                      type="file"
-                      id="fichier"
-                      onChange={handleFileChange}
-                      accept=".pdf,.jpg,.jpeg,.png"
-                    />
-                    {erreurFichier && (
-                      <p className="error-message">{erreurFichier}</p>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="mes-demande-btn mes-demande-btn-voir"
-                  >
-                    <i className="fas fa-paper-plane"></i> Envoyer la réponse
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {/* Bouton de clôture */}
-            {selectedDemande.statut === "traitée" && (
-              <div className="cloture-section">
-                <button
-                  onClick={() => handleCloturer(selectedDemande)}
-                  className="mes-demande-btn mes-demande-btn-cloturer"
-                >
-                  <i className="fas fa-check-circle"></i> Clôturer la demande
-                </button>
-              </div>
-            )}
-
             {/* Modal de notation */}
             {showRatingModal && (
-              <div className="rating-modal-overlay">
+              <div className="rating-modal">
                 <div className="rating-modal-content">
-                  <h3>Évaluez votre demande</h3>
+                  <h2>Noter la réponse</h2>
+                  <p>Veuillez noter la qualité de la réponse (1-5 étoiles)</p>
                   <div className="rating-stars">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <i
+                      <button
                         key={star}
-                        className={`fas fa-star ${
-                          star <= note ? "star-filled" : "star-empty"
-                        }`}
+                        className={`star-btn ${note >= star ? "active" : ""}`}
                         onClick={() => setNote(star)}
-                      ></i>
+                      >
+                        ★
+                      </button>
                     ))}
                   </div>
-                  <div className="rating-actions">
+                  <div className="rating-modal-buttons">
                     <button
+                      className="cancel-btn"
                       onClick={() => {
                         setShowRatingModal(false);
                         setNote(0);
                         setDemandeToClose(null);
                       }}
-                      className="mes-demande-btn mes-demande-btn-secondary"
                     >
                       Annuler
                     </button>
                     <button
+                      className="submit-btn"
                       onClick={handleRatingSubmit}
-                      className="mes-demande-btn mes-demande-btn-primary"
                       disabled={note === 0}
                     >
                       Valider
@@ -410,80 +373,126 @@ const MesDemandes = () => {
               </div>
             )}
 
-            {/* Pièces jointes envoyées par l'utilisateur */}
-            {selectedDemande.fichiers.length > 0 && (
-              <div className="mes-demande-pj-container">
-                <h4>Pièces jointes envoyées :</h4>
-                <ul className="mes-demande-pj-list">
-                  {selectedDemande.fichiers.map((file, index) => (
-                    <li key={index} className="mes-demande-pj-item">
-                      <a
-                        href={`${API_URL}/uploads/${file.replace(
-                          /^.*[\\/]/,
-                          ""
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <i className="fas fa-paperclip"></i>
-                        {file.replace(/^.*[\\/]/, "")}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Historique des messages */}
+            {/* Remplacer la section messages par le chat */}
             {selectedDemande.messages &&
               selectedDemande.messages.length > 0 && (
-                <div className="messages-section">
-                  <h3>Historique des échanges</h3>
-                  <div className="messages-list">
-                    {selectedDemande.messages.map((message, index) => (
-                      <div
-                        key={index}
-                        className={`message ${
-                          message.type === "reponse" ? "message-reponse" : ""
-                        }`}
-                      >
-                        <div className="message-header">
-                          <span className="message-author">
-                            {message.auteur.nom} {message.auteur.prenom}
-                          </span>
-                          <span className="message-date">
-                            {new Date(message.date).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div className="message-content">
-                          <p>{message.texte}</p>
-                          {message.piecesJointes &&
-                            message.piecesJointes.length > 0 && (
-                              <div className="message-fichiers">
-                                <ul>
-                                  {message.piecesJointes.map(
-                                    (file, fileIndex) => (
-                                      <li key={fileIndex}>
+                <div className="tag-chat-section">
+                  <h3 className="tag-chat-title">Discussion</h3>
+                  <div className="tag-chat-container">
+                    <div className="tag-chat-messages-wrapper">
+                      {selectedDemande.messages.map((message, index) => {
+                        // Récupérer le rôle de l'utilisateur connecté
+                        const userRole = sessionStorage.getItem("role");
+
+                        // Si l'utilisateur est un juriste, ses messages (estJuriste: true) sont à droite
+                        // Si l'utilisateur est un demandeur, ses messages (estJuriste: false) sont à droite
+                        const shouldShowOnRight =
+                          userRole === "juriste"
+                            ? message.estJuriste
+                            : !message.estJuriste;
+
+                        return (
+                          <div
+                            key={index}
+                            className={`tag-chat-message ${
+                              shouldShowOnRight
+                                ? "tag-chat-message-sent"
+                                : "tag-chat-message-received"
+                            }`}
+                          >
+                            <div className="tag-chat-message-content">
+                              <p className="tag-chat-message-text">
+                                {message.texte}
+                              </p>
+                              {message.piecesJointes &&
+                                message.piecesJointes.length > 0 && (
+                                  <div className="tag-chat-attachments">
+                                    {message.piecesJointes.map(
+                                      (file, fileIndex) => (
                                         <a
+                                          key={fileIndex}
                                           href={`${API_URL}/uploads/${file.replace(
                                             /^.*[\\/]/,
                                             ""
                                           )}`}
                                           target="_blank"
                                           rel="noopener noreferrer"
+                                          className="tag-chat-attachment-link"
                                         >
                                           <i className="fas fa-paperclip"></i>
                                           {file.replace(/^.*[\\/]/, "")}
                                         </a>
-                                      </li>
-                                    )
-                                  )}
-                                </ul>
-                              </div>
-                            )}
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                            </div>
+                            <div className="tag-chat-message-info">
+                              <span className="tag-chat-message-author">
+                                {message.auteur.nom} {message.auteur.prenom}
+                                {message.estJuriste && " (Juriste)"}
+                              </span>
+                              <span className="tag-chat-message-time">
+                                {new Date(message.date).toLocaleString(
+                                  "fr-FR",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  }
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <form
+                      onSubmit={handleSubmitReponse}
+                      className="tag-chat-input-form"
+                    >
+                      <div className="tag-chat-input-container">
+                        <textarea
+                          value={reponse}
+                          onChange={(e) => setReponse(e.target.value)}
+                          placeholder="Écrivez votre message..."
+                          className="tag-chat-input"
+                        />
+                        <div className="tag-chat-actions">
+                          <label className="tag-chat-file-upload-btn">
+                            <i className="fas fa-paperclip"></i>
+                            <input
+                              type="file"
+                              onChange={handleFileChange}
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              style={{ display: "none" }}
+                            />
+                          </label>
+                          <button type="submit" className="tag-chat-send-btn">
+                            <i className="fas fa-paper-plane"></i>
+                          </button>
                         </div>
                       </div>
-                    ))}
+                      {erreurFichier && (
+                        <p className="tag-chat-error">{erreurFichier}</p>
+                      )}
+                      {fichier && (
+                        <div className="tag-chat-selected-file">
+                          <i className="fas fa-file"></i>
+                          {fichier.name}
+                          <button
+                            type="button"
+                            onClick={() => setFichier(null)}
+                            className="tag-chat-remove-file-btn"
+                          >
+                            <i className="fas fa-times"></i>
+                          </button>
+                        </div>
+                      )}
+                    </form>
                   </div>
                 </div>
               )}

@@ -1,3 +1,4 @@
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -10,13 +11,14 @@ import FAQ from "./pages/FAQ";
 import FAQArticle from "./pages/FAQArticle";
 import Profil from "./pages/Profil";
 import Header from "./components/Header";
-import Footer from "./components/Footer";
 import ResetPassword from "./pages/ResetPassword";
 import JuristeDashboard from "./pages/JuristeDashboard";
 import JuristePanel from "./pages/JuristePanel";
 import AdminDashboard from "./pages/AdminDashboard";
-import StatistiquesSatisfaction from "./components/StatistiquesSatisfaction";
+import Statistiques from "./pages/Statistiques";
 import { useAuth } from "./context/AuthContext";
+import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
+import CookieBanner from "./components/CookieBanner";
 
 function App() {
   const { isAuthenticated, checkAccess, getDefaultRoute } = useAuth();
@@ -106,7 +108,7 @@ function App() {
           path="/statistiques"
           element={
             checkAccess(["admin", "juriste"]) ? (
-              <StatistiquesSatisfaction />
+              <Statistiques />
             ) : (
               <Navigate to={getDefaultRoute()} />
             )
@@ -116,9 +118,13 @@ function App() {
           path="/profil"
           element={isAuthenticated ? <Profil /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/politique-confidentialite"
+          element={<PolitiqueConfidentialite />}
+        />
       </Routes>
 
-      {isAuthenticated && <Footer />}
+      <CookieBanner />
     </>
   );
 }
