@@ -1,0 +1,50 @@
+.conditions-generales-container {
+  padding: 2rem 0;
+  min-height: calc(100vh - 64px);
+}
+
+.conditions-generales-paper {
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+}
+
+.conditions-section {
+  margin-bottom: 2rem;
+}
+
+.conditions-section h6 {
+  color: #033154;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.conditions-section p {
+  color: #666;
+  line-height: 1.6;
+}
+
+.conditions-list {
+  list-style-type: disc;
+  margin-left: 2rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+.conditions-list li {
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .conditions-generales-container {
+    padding: 1rem;
+  }
+
+  .conditions-generales-paper {
+    padding: 1rem;
+  }
+
+  .conditions-section {
+    margin-bottom: 1.5rem;
+  }
+}

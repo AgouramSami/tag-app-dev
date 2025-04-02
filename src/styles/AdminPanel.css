@@ -29,6 +29,8 @@
 }
 
 .admin-title::after {
+  position: absolute;
+  left: 0;
   content: "";
   display: block;
   width: 60px;
@@ -42,7 +44,7 @@
   font-size: 16px;
   color: #033154;
   opacity: 0.8;
-  margin: 0;
+  margin-top: 30px ;
 }
 
 /* 📌 Barre de recherche et filtres */

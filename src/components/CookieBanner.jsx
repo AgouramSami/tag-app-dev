@@ -1,40 +1,84 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Box, Button, Typography, Link } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import "../styles/CookieBanner.css";
 
 const CookieBanner = () => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const consent = localStorage.getItem("cookieConsent");
     if (!consent) {
-      setIsVisible(true);
+      setShowBanner(true);
     }
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem("cookieConsent", "true");
-    setIsVisible(false);
+    localStorage.setItem("cookieConsent", "accepted");
+    setShowBanner(false);
   };
 
-  if (!isVisible) return null;
+  const handleDecline = () => {
+    localStorage.setItem("cookieConsent", "declined");
+    setShowBanner(false);
+  };
+
+  const handleMentionsLegales = (e) => {
+    e.preventDefault();
+    navigate("/mentions-legales");
+  };
+
+  const handleConditionsGenerales = (e) => {
+    e.preventDefault();
+    navigate("/conditions-generales");
+  };
+
+  if (!showBanner) return null;
 
   return (
-    <div className="tag-cookie-banner">
-      <div className="tag-cookie-content">
-        <p>
+    <Box className="cookie-banner">
+      <Box className="cookie-content">
+        <Typography className="cookie-text">
           Nous utilisons des cookies pour améliorer votre expérience sur notre
-          site. En continuant à naviguer, vous acceptez notre{" "}
-          <Link to="/politique-confidentialite" className="tag-cookie-link">
-            politique de confidentialité
+          site. En continuant à naviguer, vous acceptez notre utilisation des
+          cookies.{" "}
+          <Link
+            href="/mentions-legales"
+            onClick={handleMentionsLegales}
+            className="cookie-link"
+          >
+            Mentions légales
+          </Link>{" "}
+          et{" "}
+          <Link
+            href="/conditions-generales"
+            onClick={handleConditionsGenerales}
+            className="cookie-link"
+          >
+            Conditions générales
           </Link>
-          .
-        </p>
-        <button onClick={handleAccept} className="tag-cookie-accept">
-          Accepter
-        </button>
-      </div>
-    </div>
+        </Typography>
+        <Box className="cookie-buttons">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAccept}
+            className="cookie-button accept"
+          >
+            Accepter
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleDecline}
+            className="cookie-button decline"
+          >
+            Refuser
+          </Button>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

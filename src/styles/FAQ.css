@@ -103,7 +103,6 @@
 /* 📋 Liste des FAQ */
 .tag-faq-list {
   display: grid;
-  gap: 1.5rem;
 }
 
 /* 🔽 Chaque question */
@@ -186,6 +185,7 @@
   width: 100%;
   box-sizing: border-box;
   display: none;
+  font-size: 1.1rem;
 }
 
 .tag-faq-item.active .tag-faq-answer {
@@ -193,6 +193,7 @@
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid #eee;
+  font-size: 1.1rem;
 }
 
 .tag-faq-item.active .tag-faq-header::after {
