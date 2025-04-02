@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import RGPDNotice from "../components/RGPDNotice";
 import CardDemande from "../components/CardDemande";
 import ConsulterDemande from "../components/ConsulterDemande";
+import SearchFilter from "../components/SearchFilter";
 import "../styles/MesDemandes.css";
 
 const API_URL = "http://localhost:5000";
@@ -21,6 +22,14 @@ const MesDemandes = () => {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [demandeToClose, setDemandeToClose] = useState(null);
   const navigate = useNavigate();
+
+  const filterOptions = [
+    { value: "tous", label: "Tous les statuts" },
+    { value: "en attente", label: "En attente" },
+    { value: "en cours", label: "En cours" },
+    { value: "traitée", label: "Traitée" },
+    { value: "archivée", label: "Archivée" },
+  ];
 
   useEffect(() => {
     const fetchDemandes = async () => {
@@ -83,7 +92,40 @@ const MesDemandes = () => {
   const handleConsultation = (demande) => {
     console.log("Consultation de la demande:", demande);
     if (demande && demande._id) {
-      setSelectedDemande(demande);
+      // Si la demande est archivée, on l'affiche directement sans recharger
+      if (demande.statut === "archivée") {
+        console.log("Affichage direct d'une demande archivée");
+        setSelectedDemande(demande);
+        return;
+      }
+
+      // Pour les autres statuts, on recharge la demande
+      const fetchDemande = async () => {
+        try {
+          const token = sessionStorage.getItem("token");
+          const response = await fetch(
+            `${API_URL}/api/demandes/${demande._id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            setSelectedDemande(data);
+          } else {
+            // En cas d'erreur, on utilise la demande locale
+            setSelectedDemande(demande);
+          }
+        } catch (error) {
+          console.error("Erreur lors de la récupération de la demande:", error);
+          setSelectedDemande(demande);
+        }
+      };
+
+      fetchDemande();
     } else {
       console.error("Demande invalide:", demande);
     }
@@ -266,29 +308,15 @@ const MesDemandes = () => {
     <div className="mes-demandes-container">
       <div className="mes-demandes-header">
         <h1 className="mes-demandes-title">Mes Demandes</h1>
-        <div className="tag-filters-container">
-          <div className="tag-filter-group">
-            <label>Rechercher</label>
-            <input
-              type="text"
-              placeholder="Rechercher par objet ou numéro de demande..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="tag-filter-group">
-            <label>Statut</label>
-            <select
-              value={filtreStatut}
-              onChange={(e) => setFiltreStatut(e.target.value)}
-            >
-              <option value="tous">Tous les statuts</option>
-              <option value="en attente">En attente</option>
-              <option value="traitée">Traitée</option>
-              <option value="archivée">Archivée</option>
-            </select>
-          </div>
-        </div>
+        <SearchFilter
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          filterValue={filtreStatut}
+          onFilterChange={setFiltreStatut}
+          filterOptions={filterOptions}
+          searchPlaceholder="Rechercher par objet ou numéro de demande..."
+          filterLabel="Statut"
+        />
       </div>
 
       {selectedDemande && selectedDemande._id ? (
@@ -510,6 +538,8 @@ const MesDemandes = () => {
                 theme={demande.theme}
                 statut={demande.statut}
                 onConsulter={() => handleConsultation(demande)}
+                onDelete={handleDelete}
+                id={demande._id}
               />
             ))}
           </div>

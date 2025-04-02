@@ -165,18 +165,30 @@ const CreerDemande = () => {
           <label className="tag-form-label">Pièces jointes</label>
           <div className="tag-pieces-jointes-container">
             <div className="tag-pieces-jointes-label">
-              {piecesJointes.map((piece, index) => (
-                <div key={index} className="tag-piece-jointe">
-                  <span>{piece.name}</span>
-                  <button
-                    type="button"
-                    className="tag-pieces-jointes-supprimer"
-                    onClick={() => handleRemoveFile(index)}
-                  >
-                    ×
-                  </button>
+              {piecesJointes.length === 0 ? (
+                <div className="tag-pieces-jointes-empty">
+                  Aucune pièce jointe
                 </div>
-              ))}
+              ) : (
+                piecesJointes.map((piece, index) => (
+                  <div key={index} className="tag-piece-jointe">
+                    <span>{piece.name}</span>
+                    <button
+                      type="button"
+                      className="tag-pieces-jointes-supprimer"
+                      onClick={() => handleRemoveFile(index)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                      </svg>
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
             <button
               type="button"
@@ -198,6 +210,9 @@ const CreerDemande = () => {
               onChange={handleFileChange}
               multiple
             />
+          </div>
+          <div className="tag-pieces-jointes-info">
+            Formats acceptés : PDF, PNG, JPEG (max 8 pièces)
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import "./App.css";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -24,7 +25,7 @@ function App() {
   const { isAuthenticated, checkAccess, getDefaultRoute } = useAuth();
 
   return (
-    <>
+    <div className="tag-app-container">
       {isAuthenticated && <Header />}
 
       <Routes>
@@ -125,7 +126,7 @@ function App() {
       </Routes>
 
       <CookieBanner />
-    </>
+    </div>
   );
 }
 

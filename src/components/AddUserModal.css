@@ -1,0 +1,120 @@
+.add-user-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.add-user-modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.add-user-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 3px solid #f3633f;
+}
+
+.add-user-modal-header h2 {
+  margin: 0;
+  color: #033154;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.add-user-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #033154;
+  cursor: pointer;
+  padding: 5px;
+  transition: color 0.3s ease;
+  opacity: 0.8;
+}
+
+.add-user-modal-close:hover {
+  opacity: 1;
+}
+
+.add-user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.add-user-form-group {
+  margin-bottom: 15px;
+}
+
+.add-user-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #033154;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.add-user-form-group input,
+.add-user-form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #2d3436;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.add-user-form-group input:focus,
+.add-user-form-group select:focus {
+  outline: none;
+  border-color: #033154;
+  box-shadow: 0 0 0 3px rgba(3, 49, 84, 0.1);
+}
+
+.add-user-form-group input::placeholder {
+  color: #636e72;
+}
+
+.add-user-submit-btn {
+  background-color: #033154;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  opacity: 0.9;
+  margin-top: 10px;
+}
+
+.add-user-submit-btn:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}

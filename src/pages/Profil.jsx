@@ -214,11 +214,6 @@ const Profil = () => {
             editedUser?.prenom || user.prenom
           } ${editedUser?.nom || user.nom}`}</div>
           <div className="tag-profil-handle">{user.fonction}</div>
-          {!isEditing && (
-            <button className="tag-profil-edit-btn" onClick={handleEdit}>
-              Modifier
-            </button>
-          )}
         </div>
 
         {error && <div className="tag-profil-error-message">{error}</div>}

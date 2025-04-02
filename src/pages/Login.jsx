@@ -9,15 +9,27 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    // Validation basique
+    if (!formData.email || !formData.password) {
+      setError("Veuillez remplir tous les champs");
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await axios.post(
@@ -28,11 +40,23 @@ const Login = () => {
       if (response.data.token) {
         await login(response.data);
       } else {
-        setError("Erreur d'authentification.");
+        setError("Erreur d'authentification. Veuillez réessayer.");
       }
     } catch (err) {
       console.error("Erreur de connexion:", err);
-      setError(err.response?.data?.message || "Erreur lors de la connexion");
+      if (err.response?.status === 400) {
+        if (err.response.data.message === "Utilisateur non trouvé.") {
+          setError("Aucun compte n'existe avec cet email.");
+        } else if (err.response.data.message === "Mot de passe incorrect.") {
+          setError("Mot de passe incorrect. Veuillez réessayer.");
+        } else {
+          setError(err.response.data.message || "Erreur de connexion");
+        }
+      } else if (err.response?.status === 403) {
+        setError("Votre compte n'est pas encore validé ou est bloqué.");
+      } else {
+        setError("Une erreur est survenue. Veuillez réessayer plus tard.");
+      }
     } finally {
       setLoading(false);
     }
@@ -44,6 +68,12 @@ const Login = () => {
         <div className="logo-container">
           <img src="src/assets/tag_logo.svg" alt="TAG Logo" className="logo" />
         </div>
+
+        {error && (
+          <div className="tag-login-error-container">
+            <p className="tag-login-error-message">{error}</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <label htmlFor="email" className="label_signup">
@@ -63,16 +93,56 @@ const Login = () => {
           <label htmlFor="password" className="label_signup">
             Mot de passe
           </label>
-          <input
-            id="password"
-            className="input_signup"
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="********"
-            required
-          />
+          <div className="tag-password-input-container">
+            <input
+              id="password"
+              className="input_signup"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="********"
+              required
+            />
+            <button
+              type="button"
+              className="tag-password-toggle-btn"
+              onClick={togglePasswordVisibility}
+              aria-label={
+                showPassword
+                  ? "Masquer le mot de passe"
+                  : "Afficher le mot de passe"
+              }
+            >
+              {showPassword ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              )}
+            </button>
+          </div>
 
           <Link to="/forgot-password" className="tag-forgot-password">
             Mot de passe oublié ?
@@ -88,7 +158,6 @@ const Login = () => {
             </button>
           </Link>
 */}
-          {error && <p className="error-message">{error}</p>}
         </form>
       </div>
     </div>

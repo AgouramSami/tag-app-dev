@@ -1,22 +1,23 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "../styles/AdminPanel.css";
 import ModalSubmit from "../components/ModalSubmit";
+import AddUserModal from "../components/AddUserModal";
+import SearchFilter from "../components/SearchFilter";
 
 const AdminPanel = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [searchTerm, setSearchTerm] = useState("");
-  const [showModal, setShowModal] = useState(false); // ✅ Gère l'affichage de la modal
-  const [showPassword, setShowPassword] = useState(false); // ✅ État pour afficher/cacher le mdp
+  const [showModal, setShowModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [submitType, setSubmitType] = useState("success");
-
-  const [communes, setCommunes] = useState([]); // ✅ Stocke les communes depuis la BDD
-  const [fonctions, setFonctions] = useState([]); // ✅ Stocke les fonctions depuis la BDD
-
+  const [communes, setCommunes] = useState([]);
+  const [fonctions, setFonctions] = useState([]);
   const [newUser, setNewUser] = useState({
     nom: "",
     prenom: "",
@@ -25,17 +26,27 @@ const AdminPanel = () => {
     commune: "",
     telephone: "",
     permissions: "user",
-    isValidated: false,
+    isValidated: true,
   });
 
   useEffect(() => {
+    console.log("Chargement des données...");
     fetchUsers();
     fetchCommunes();
     fetchFonctions();
   }, []);
 
-  const fetchUsers = async () => {
+  const checkAuth = () => {
     const token = sessionStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return false;
+    }
+    return token;
+  };
+
+  const fetchUsers = async () => {
+    const token = checkAuth();
     if (!token) return;
 
     try {
@@ -44,7 +55,12 @@ const AdminPanel = () => {
       });
       setUsers(res.data);
     } catch (error) {
-      setError("Erreur lors du chargement des utilisateurs.");
+      if (error.response?.status === 401) {
+        sessionStorage.removeItem("token");
+        navigate("/login");
+      } else {
+        setError("Erreur lors du chargement des utilisateurs.");
+      }
     }
   };
 
@@ -67,14 +83,28 @@ const AdminPanel = () => {
   };
 
   const toggleValidation = async (userId, isValidated) => {
-    const token = sessionStorage.getItem("token");
+    const token = checkAuth();
+    if (!token) return;
+
+    if (!userId) {
+      console.error("ID utilisateur manquant");
+      setSubmitMessage("Erreur : ID utilisateur manquant");
+      setSubmitType("error");
+      setShowSubmitModal(true);
+      return;
+    }
+
+    console.log("Tentative de mise à jour pour l'utilisateur:", userId);
+    console.log("État actuel:", isValidated);
 
     try {
-      await axios.put(
+      const res = await axios.put(
         `http://localhost:5000/api/admin/toggle-validation/${userId}`,
         { isValidated: !isValidated },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      console.log("Réponse du serveur:", res.data);
 
       setSubmitMessage(
         `Utilisateur ${isValidated ? "désactivé" : "activé"} avec succès !`
@@ -89,15 +119,20 @@ const AdminPanel = () => {
         )
       );
     } catch (err) {
-      setSubmitMessage("Erreur lors de la mise à jour du statut.");
-      setSubmitType("error");
-      setShowSubmitModal(true);
-      console.error("Erreur de mise à jour :", err);
+      if (err.response?.status === 401) {
+        sessionStorage.removeItem("token");
+        navigate("/login");
+      } else {
+        setSubmitMessage("Erreur lors de la mise à jour du statut.");
+        setSubmitType("error");
+        setShowSubmitModal(true);
+      }
     }
   };
 
   const handleDelete = async (userId) => {
-    const token = sessionStorage.getItem("token");
+    const token = checkAuth();
+    if (!token) return;
 
     if (!window.confirm("Voulez-vous vraiment supprimer cet utilisateur ?")) {
       return;
@@ -113,10 +148,14 @@ const AdminPanel = () => {
       setShowSubmitModal(true);
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
     } catch (err) {
-      setSubmitMessage("Erreur lors de la suppression de l'utilisateur.");
-      setSubmitType("error");
-      setShowSubmitModal(true);
-      console.error("Erreur de suppression :", err);
+      if (err.response?.status === 401) {
+        sessionStorage.removeItem("token");
+        navigate("/login");
+      } else {
+        setSubmitMessage("Erreur lors de la suppression de l'utilisateur.");
+        setSubmitType("error");
+        setShowSubmitModal(true);
+      }
     }
   };
 
@@ -143,27 +182,68 @@ const AdminPanel = () => {
   );
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setNewUser({ ...newUser, [name]: type === "checkbox" ? checked : value });
+    const { name, value } = e.target;
+    setNewUser((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
-    const token = sessionStorage.getItem("token");
+    const token = checkAuth();
+    if (!token) return;
+
+    // Vérifier que tous les champs requis sont remplis
+    if (
+      !newUser.nom ||
+      !newUser.prenom ||
+      !newUser.email ||
+      !newUser.fonction ||
+      !newUser.commune ||
+      !newUser.telephone
+    ) {
+      setSubmitMessage("Veuillez remplir tous les champs obligatoires.");
+      setSubmitType("error");
+      setShowSubmitModal(true);
+      return;
+    }
 
     try {
+      const userData = {
+        ...newUser,
+        isValidated: true, // Forcer à true
+      };
+      console.log("Envoi des données utilisateur:", userData);
+
       const res = await axios.post(
         "http://localhost:5000/api/admin/create-user",
-        newUser,
+        userData,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      setSubmitMessage("Utilisateur créé avec succès !");
+      console.log("Réponse du serveur:", res.data);
+
+      if (res.data.user) {
+        // S'assurer que l'utilisateur a toutes les propriétés nécessaires
+        const newUserWithDefaults = {
+          ...res.data.user,
+          isValidated: true, // Forcer à true même si pas dans la réponse
+        };
+        console.log("Nouvel utilisateur à ajouter:", newUserWithDefaults);
+
+        // Mettre à jour la liste des utilisateurs
+        setUsers((prevUsers) => [...prevUsers, newUserWithDefaults]);
+
+        // Rafraîchir la liste complète pour s'assurer d'avoir les données à jour
+        fetchUsers();
+      }
+
+      setSubmitMessage(res.data.message || "Utilisateur créé avec succès !");
       setSubmitType("success");
       setShowSubmitModal(true);
-      setUsers([...users, res.data.user]);
       setShowModal(false);
       setNewUser({
         nom: "",
@@ -173,9 +253,13 @@ const AdminPanel = () => {
         commune: "",
         telephone: "",
         permissions: "user",
-        isValidated: false,
+        isValidated: true,
       });
     } catch (error) {
+      console.error(
+        "Erreur lors de la création :",
+        error.response?.data || error
+      );
       setSubmitMessage(
         error.response?.data?.message ||
           "Erreur lors de la création de l'utilisateur."
@@ -185,130 +269,51 @@ const AdminPanel = () => {
     }
   };
 
-  const handleOpenModal = async () => {
-    setShowModal(true);
-    try {
-      const [communeRes, fonctionRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/communes"),
-        axios.get("http://localhost:5000/api/fonctions"),
-      ]);
+  const filterOptions = [
+    { value: "tous", label: "Tous les statuts" },
+    { value: "validated", label: "Validé" },
+    { value: "not-validated", label: "Non validé" },
+  ];
 
-      setCommunes(communeRes.data);
-      setFonctions(fonctionRes.data);
-    } catch (error) {
-      console.error("Erreur lors du chargement des données :", error);
-    }
+  const handleOpenModal = () => {
+    setNewUser({
+      nom: "",
+      prenom: "",
+      email: "",
+      fonction: "",
+      commune: "",
+      telephone: "",
+      permissions: "user",
+      isValidated: true,
+    });
+    setShowModal(true);
   };
 
   return (
     <div className="admin-container">
-      <h1 className="title-admin">Panneau d'administration</h1>
-
-      <div className="top">
-        <div className="search-container">
-          <label htmlFor="searchUsers" className="search-label"></label>
-          <input
-            type="text"
-            placeholder="Rechercher un utilisateur..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-bar"
-          />
+      <div className="admin-panel-header">
+        <div className="header-content">
+          <h1 className="admin-title">Espace Administrateur</h1>
+          <p className="admin-subtitle">
+            Gérez les utilisateurs et leurs permissions
+          </p>
         </div>
-
-        <button className="add-user-btn" onClick={handleOpenModal}>
-          Ajouter un utilisateur
-        </button>
       </div>
 
-      {/* ✅ Modal pour le formulaire */}
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button className="close-modal" onClick={() => setShowModal(false)}>
-              ✖
-            </button>
-            <h2>Créer un nouvel utilisateur</h2>
-
-            <form onSubmit={handleCreateUser} className="create-user-form">
-              <label>Nom :</label>
-              <input
-                type="text"
-                name="nom"
-                value={newUser.nom}
-                onChange={handleInputChange}
-              />
-
-              <label>Prénom :</label>
-              <input
-                type="text"
-                name="prenom"
-                value={newUser.prenom}
-                onChange={handleInputChange}
-              />
-
-              <label>Email :</label>
-              <input
-                type="email"
-                name="email"
-                value={newUser.email}
-                onChange={handleInputChange}
-              />
-
-              <label>Fonction :</label>
-              <select
-                name="fonction"
-                value={newUser.fonction}
-                onChange={handleInputChange}
-              >
-                <option value="">Sélectionner une fonction</option>
-                {fonctions.length === 0 ? (
-                  <option disabled>Chargement...</option>
-                ) : (
-                  fonctions.map((fonction) => (
-                    <option key={fonction._id} value={fonction.nom}>
-                      {fonction.nom}
-                    </option>
-                  ))
-                )}
-              </select>
-
-              <label>Commune :</label>
-              <select
-                name="commune"
-                value={newUser.commune}
-                onChange={handleInputChange}
-              >
-                <option value="">Sélectionner une commune</option>
-                {communes.length === 0 ? (
-                  <option disabled>Chargement...</option>
-                ) : (
-                  communes.map((commune) => (
-                    <option key={commune._id} value={commune._id}>
-                      {commune.nom}
-                    </option>
-                  ))
-                )}
-              </select>
-
-              <label>Permissions :</label>
-              <select
-                name="permissions"
-                value={newUser.permissions}
-                onChange={handleInputChange}
-              >
-                <option value="user">Utilisateur</option>
-                <option value="juriste">Juriste</option>
-                <option value="admin">Administrateur</option>
-              </select>
-
-              <button className="button1" type="submit">
-                Créer l'utilisateur
-              </button>
-            </form>
-          </div>
+      <div className="search-container">
+        <div className="search-group">
+          <label>Rechercher un utilisateur</label>
+          <input
+            type="text"
+            placeholder="Rechercher par nom, email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-      )}
+        <button className="add-user-btn" onClick={handleOpenModal}>
+          <i className="fas fa-plus"></i> Ajouter un utilisateur
+        </button>
+      </div>
 
       {error && <div className="error-container">{error}</div>}
 
@@ -354,20 +359,31 @@ const AdminPanel = () => {
           <tbody>
             {filteredUsers.map((user) => (
               <tr key={user._id}>
-                <td>
+                <td key={`name-${user._id}`}>
                   {user.nom} {user.prenom}
                 </td>
-                <td>{user.email}</td>
-                <td>{user.permissions}</td>
+                <td key={`email-${user._id}`}>{user.email}</td>
+                <td key={`perm-${user._id}`}>{user.permissions}</td>
                 <td
+                  key={`status-${user._id}`}
                   className={`status ${
                     user.isValidated ? "validated" : "not-validated"
                   }`}
-                  onClick={() => toggleValidation(user._id, user.isValidated)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (!user._id) {
+                      console.error("Pas d'ID pour l'utilisateur:", user);
+                      return;
+                    }
+                    console.log("Toggle validation pour:", user);
+                    toggleValidation(user._id, user.isValidated);
+                  }}
                 >
-                  {user.isValidated ? "✅" : "❌"}
+                  <span className="status-icon">
+                    {user.isValidated ? "✅" : "❌"}
+                  </span>
                 </td>
-                <td>
+                <td key={`action-${user._id}`}>
                   <button
                     className="delete-btn"
                     onClick={() => handleDelete(user._id)}
@@ -385,6 +401,16 @@ const AdminPanel = () => {
           </tbody>
         </table>
       </div>
+
+      <AddUserModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        newUser={newUser}
+        onInputChange={handleInputChange}
+        onSubmit={handleCreateUser}
+        communes={communes}
+        fonctions={fonctions}
+      />
 
       <ModalSubmit
         isOpen={showSubmitModal}

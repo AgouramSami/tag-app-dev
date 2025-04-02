@@ -32,28 +32,18 @@ const Header = () => {
     <header className="tag-header">
       <div className="logo-site"></div>
       <nav className="tag-nav">
-        {/* Liens communs à tous les utilisateurs */}
+        {/* Liens principaux */}
         <NavLink to={getHomeLink()} className="tag-nav-link" end>
           <i className="fas fa-home"></i>
           <span>Accueil</span>
         </NavLink>
-        <NavLink to="/profil" className="tag-nav-link">
-          <i className="fas fa-user"></i>
-          <span>Profil</span>
-        </NavLink>
 
         {/* Liens spécifiques aux utilisateurs normaux */}
         {user?.permissions === "user" && (
-          <>
-            <NavLink to="/creer-demande" className="tag-nav-link">
-              <i className="fas fa-plus-circle"></i>
-              <span>Créer</span>
-            </NavLink>
-            <NavLink to="/mes-demandes" className="tag-nav-link">
-              <i className="fas fa-list"></i>
-              <span>Demandes</span>
-            </NavLink>
-          </>
+          <NavLink to="/mes-demandes" className="tag-nav-link">
+            <i className="fas fa-list"></i>
+            <span>Demandes</span>
+          </NavLink>
         )}
 
         {/* Liens spécifiques aux juristes */}
@@ -84,10 +74,22 @@ const Header = () => {
           </>
         )}
 
-        {/* Liens communs à tous les utilisateurs */}
+        {/* Lien Créer demande au milieu */}
+        {user?.permissions === "user" && (
+          <NavLink to="/creer-demande" className="tag-nav-link">
+            <i className="fas fa-plus-circle"></i>
+            <span>Créer</span>
+          </NavLink>
+        )}
+
+        {/* Liens utilitaires */}
         <NavLink to="/faq" className="tag-nav-link">
           <i className="fas fa-question-circle"></i>
           <span>FAQ</span>
+        </NavLink>
+        <NavLink to="/profil" className="tag-nav-link">
+          <i className="fas fa-user"></i>
+          <span>Profil</span>
         </NavLink>
       </nav>
     </header>

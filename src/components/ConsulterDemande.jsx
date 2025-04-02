@@ -11,6 +11,7 @@ const ConsulterDemande = ({
   onRetour,
   isJuriste = false,
 }) => {
+  console.log("ConsulterDemande reçoit:", { demande, isJuriste });
   const [message, setMessage] = useState("");
   const [fichier, setFichier] = useState(null);
   const [erreurFichier, setErreurFichier] = useState("");
@@ -20,9 +21,21 @@ const ConsulterDemande = ({
   const [showCloturer, setShowCloturer] = useState(false);
 
   useEffect(() => {
+    console.log("useEffect ConsulterDemande - demande:", demande);
     const fetchMessages = async () => {
       try {
         const token = sessionStorage.getItem("token");
+        if (!token) {
+          console.error("Token non trouvé");
+          return;
+        }
+
+        // Si la demande est déjà complète avec ses messages, pas besoin de la recharger
+        if (demande.messages && demande.messages.length > 0) {
+          setMessages(demande.messages);
+          return;
+        }
+
         const response = await fetch(`${API_URL}/api/demandes/${demande._id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -31,35 +44,32 @@ const ConsulterDemande = ({
 
         if (response.ok) {
           const data = await response.json();
-          setMessages(data.messages);
+          setMessages(data.messages || []);
         } else {
-          // Si la requête échoue, utiliser les messages de la props demande
-          console.log(
-            "⚠️ Impossible de récupérer les messages, utilisation des messages locaux"
-          );
+          console.log("⚠️ Utilisation des messages locaux");
           setMessages(demande.messages || []);
         }
       } catch (error) {
         console.error("Erreur lors de la récupération des messages:", error);
-        // En cas d'erreur, utiliser les messages de la props demande
         setMessages(demande.messages || []);
       }
     };
 
-    fetchMessages();
-    fetchCommune();
-    scrollToBottom();
-  }, [demande._id, demande.messages]);
+    if (demande && demande._id) {
+      fetchMessages();
+      fetchCommune();
+      scrollToBottom();
+    }
+  }, [demande?._id]);
 
   const fetchCommune = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      if (!token) {
-        console.error("Token non trouvé");
+      if (!token || !demande?.commune) {
+        console.error("Token ou commune non trouvé");
         return;
       }
 
-      // Récupération de la commune
       const communeResponse = await fetch(
         `${API_URL}/api/communes/${demande.commune}`,
         {
@@ -125,19 +135,8 @@ const ConsulterDemande = ({
 
       const messageData = await response.json();
 
-      // Créer le nouveau message avec les données complètes
-      const nouveauMessage = {
-        texte: message,
-        auteur: {
-          _id: sessionStorage.getItem("userId"),
-          nom: sessionStorage.getItem("userNom"),
-          prenom: sessionStorage.getItem("userPrenom"),
-        },
-        date: new Date().toISOString(),
-        type: isJuriste ? "reponse" : "demande",
-        estJuriste: isJuriste,
-        piecesJointes: messageData.message?.piecesJointes || [],
-      };
+      // Utiliser directement le message retourné par le backend
+      const nouveauMessage = messageData.message;
 
       // Mise à jour locale des messages
       setMessages((prevMessages) => [...prevMessages, nouveauMessage]);
@@ -230,16 +229,17 @@ const ConsulterDemande = ({
             <div className="tag-consulter-info-grid">
               <div className="tag-consulter-info-item">
                 <label>Thème</label>
-                <span>{demande.theme}</span>
+                <span>{demande?.theme || "Non spécifié"}</span>
               </div>
               <div className="tag-consulter-info-item">
                 <label>Commune</label>
-                <span>{commune ? commune.nom : "Chargement..."}</span>
+                <span>{commune?.nom || "Chargement..."}</span>
               </div>
               <div className="tag-consulter-info-item">
                 <label>Demandeur</label>
                 <span>
-                  {demande.utilisateur.nom} {demande.utilisateur.prenom}
+                  {demande?.utilisateur?.nom || "N/A"}{" "}
+                  {demande?.utilisateur?.prenom || ""}
                 </span>
               </div>
             </div>
@@ -247,70 +247,85 @@ const ConsulterDemande = ({
 
           <div className="tag-consulter-detail-objet">
             <h2>Objet de la demande</h2>
-            <p>{demande.objet}</p>
+            <p>{demande?.objet || "Aucun objet spécifié"}</p>
           </div>
         </div>
 
         <div className="tag-consulter-chat-section">
           <h2 className="tag-chat-title">Conversation</h2>
           <div className="tag-chat-messages-wrapper">
-            {messages.map((message, index) => {
-              // Si l'utilisateur est un juriste, ses messages (estJuriste: true) sont à droite
-              // Si l'utilisateur est un demandeur, ses messages (estJuriste: false) sont à droite
-              const shouldShowOnRight = isJuriste
-                ? message.estJuriste
-                : !message.estJuriste;
+            {messages && messages.length > 0 ? (
+              messages.map((message, index) => {
+                // Gérer les messages sans auteur (anciens messages)
+                const auteurInfo = message.auteur
+                  ? {
+                      nom: message.auteur.nom || "Utilisateur",
+                      prenom: message.auteur.prenom || "Inconnu",
+                    }
+                  : {
+                      nom: message.estJuriste ? "Juriste" : "Utilisateur",
+                      prenom: "Inconnu",
+                    };
 
-              return (
-                <div
-                  key={index}
-                  className={`tag-chat-message ${
-                    shouldShowOnRight
-                      ? "tag-chat-message-sent"
-                      : "tag-chat-message-received"
-                  }`}
-                >
-                  <div className="tag-chat-message-content">
-                    <p className="tag-chat-message-text">{message.texte}</p>
-                    {message.piecesJointes &&
-                      message.piecesJointes.length > 0 && (
-                        <div className="tag-chat-attachments">
-                          {message.piecesJointes.map((file, fileIndex) => (
-                            <a
-                              key={fileIndex}
-                              href={`${API_URL}/uploads/${file.replace(
-                                /^.*[\\/]/,
-                                ""
-                              )}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="tag-chat-attachment-link"
-                            >
-                              <i className="fas fa-paperclip"></i>
-                              {file.replace(/^.*[\\/]/, "")}
-                            </a>
-                          ))}
-                        </div>
-                      )}
+                const shouldShowOnRight = isJuriste
+                  ? message.estJuriste
+                  : !message.estJuriste;
+
+                return (
+                  <div
+                    key={index}
+                    className={`tag-chat-message ${
+                      shouldShowOnRight
+                        ? "tag-chat-message-sent"
+                        : "tag-chat-message-received"
+                    }`}
+                  >
+                    <div className="tag-chat-message-content">
+                      <p className="tag-chat-message-text">{message.texte}</p>
+                      {message.piecesJointes &&
+                        message.piecesJointes.length > 0 && (
+                          <div className="tag-chat-attachments">
+                            {message.piecesJointes.map((file, fileIndex) => (
+                              <a
+                                key={fileIndex}
+                                href={`${API_URL}/uploads/${file.replace(
+                                  /^.*[\\/]/,
+                                  ""
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="tag-chat-attachment-link"
+                              >
+                                <i className="fas fa-paperclip"></i>
+                                {file.replace(/^.*[\\/]/, "")}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                    </div>
+                    <div className="tag-chat-message-info">
+                      <span className="tag-chat-message-author">
+                        {auteurInfo.nom} {auteurInfo.prenom}
+                        {message.estJuriste && " (Juriste)"}
+                      </span>
+                      <span className="tag-chat-message-time">
+                        {new Date(message.date).toLocaleString("fr-FR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
                   </div>
-                  <div className="tag-chat-message-info">
-                    <span className="tag-chat-message-author">
-                      {message.auteur.nom} {message.auteur.prenom}
-                      {message.estJuriste && " (Juriste)"}
-                    </span>
-                    <span className="tag-chat-message-time">
-                      {new Date(message.date).toLocaleString("fr-FR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div className="no-messages">
+                <p>Aucun message dans cette conversation</p>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 

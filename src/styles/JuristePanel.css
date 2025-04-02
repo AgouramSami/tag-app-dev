@@ -9,24 +9,23 @@ body {
 
 /* 📌 Conteneur principal */
 .juriste-panel-container {
-  min-height: 100vh;
+  width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px 50px;
-  background-color: #fff;
+  margin: auto auto;
+  padding: 20px 50px;
+  background-color: #ffffff;
 }
 
 /* 📌 En-tête */
 .juriste-panel-header {
-  margin: -20px -20px 40px;
+  margin: 0px;
   padding: 40px 20px;
   color: white;
-  text-align: center;
 }
 
 .header-content {
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
 }
 
 .juriste-title {
@@ -37,6 +36,8 @@ body {
   color: #033154;
 }
 .juriste-title::after {
+  position: absolute;
+  left: 0;
   content: "";
   display: block;
   width: 60px;
@@ -46,9 +47,10 @@ body {
 }
 
 .juriste-subtitle {
+  text-align: left;
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0;
+  color: #033154;
+  margin-top: 20px;
 }
 
 /* 📌 Filtres */
@@ -179,6 +181,8 @@ body {
   display: grid;
   gap: 20px;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* 📌 Message pas de résultats */
@@ -203,52 +207,28 @@ body {
 }
 
 /* 📱 Responsive */
+@media (max-width: 1024px) {
+  .demandes-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
-  .juriste-panel-container {
-    padding: 0 15px 30px;
-  }
-
-  .juriste-panel-header {
-    margin: -15px -15px 30px;
-    padding: 30px 15px;
-  }
-
-  .juriste-title {
-    font-size: 24px;
-  }
-
-  .juriste-subtitle {
-    font-size: 14px;
-  }
-
-  .juriste-panel-filters {
-    gap: 15px;
-  }
-
-  .search-container {
-    min-width: 100%;
-  }
-
-  .filter-container {
-    min-width: 100%;
-  }
-
   .demandes-list {
     grid-template-columns: 1fr;
   }
 
-  .search-input,
-  .filter-select {
-    padding: 10px 15px;
-    font-size: 14px;
+  .juriste-panel-container {
+    padding: 10px;
   }
 
-  .search-input {
-    padding-left: 40px;
+  .juriste-panel-filters {
+    flex-direction: column;
   }
 
-  .filter-select {
-    padding-right: 35px;
+  .search-container,
+  .filter-container {
+    width: 100%;
   }
 }
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CardDemande from "../components/CardDemande";
 import ConsulterDemande from "../components/ConsulterDemande";
+import SearchFilter from "../components/SearchFilter";
 import "../styles/JuristePanel.css";
 
 const API_URL = "http://localhost:5000"; // URL de votre serveur backend
@@ -72,6 +73,7 @@ const JuristePanel = () => {
   });
 
   const handleConsultation = (demande) => {
+    console.log("Demande sélectionnée:", demande);
     setDemandeSelectionnee(demande);
   };
 
@@ -138,6 +140,19 @@ const JuristePanel = () => {
     }
   };
 
+  const handleDelete = (id) => {
+    // Implement the delete logic here
+    console.log("Suppression de la demande:", id);
+  };
+
+  const filterOptions = [
+    { value: "tous", label: "Tous les statuts" },
+    { value: "en attente", label: "En attente" },
+    { value: "en cours", label: "En cours" },
+    { value: "traitée", label: "Traitée" },
+    { value: "archivée", label: "Archivée" },
+  ];
+
   if (isLoading) {
     return (
       <div className="juriste-panel-container">
@@ -161,6 +176,7 @@ const JuristePanel = () => {
   }
 
   if (demandeSelectionnee) {
+    console.log("Rendu de ConsulterDemande avec:", demandeSelectionnee);
     return (
       <ConsulterDemande
         demande={demandeSelectionnee}
@@ -182,30 +198,15 @@ const JuristePanel = () => {
         </div>
       </div>
 
-      <div className="tag-filters-container">
-        <div className="tag-filter-group">
-          <label>Rechercher</label>
-          <input
-            type="text"
-            placeholder="Rechercher par objet ou numéro de demande..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="tag-filter-group">
-          <label>Statut</label>
-          <select
-            value={filtreStatut}
-            onChange={(e) => setFiltreStatut(e.target.value)}
-          >
-            <option value="tous">Tous les statuts</option>
-            <option value="en attente">En attente</option>
-            <option value="en cours">En cours</option>
-            <option value="traitée">Traitée</option>
-            <option value="clôturé">Clôturé</option>
-          </select>
-        </div>
-      </div>
+      <SearchFilter
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        filterValue={filtreStatut}
+        onFilterChange={setFiltreStatut}
+        filterOptions={filterOptions}
+        searchPlaceholder="Rechercher par objet ou numéro de demande..."
+        filterLabel="Statut"
+      />
 
       <div className="demandes-list">
         {demandesFiltrees.length === 0 ? (
@@ -223,6 +224,9 @@ const JuristePanel = () => {
               theme={demande.theme}
               statut={demande.statut}
               onConsulter={() => handleConsultation(demande)}
+              onDelete={handleDelete}
+              id={demande._id}
+              isJuriste={true}
             />
           ))
         )}

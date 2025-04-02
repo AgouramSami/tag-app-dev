@@ -245,3 +245,9 @@ router.get("/satisfaction-strate", authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+
+ 
+ 
+ 
+ 
+ 

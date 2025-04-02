@@ -52,10 +52,19 @@ export const AuthProvider = ({ children }) => {
       setUser(newUser);
       setIsAuthenticated(true);
 
-      if (newUser.permissions === "juriste") {
-        navigate("/juriste");
-      } else {
-        navigate("/mes-demandes");
+      // Redirection selon le rôle
+      switch (newUser.permissions) {
+        case "admin":
+          navigate("/admin");
+          break;
+        case "juriste":
+          navigate("/juriste");
+          break;
+        case "user":
+          navigate("/dashboard");
+          break;
+        default:
+          navigate("/dashboard");
       }
     } catch (error) {
       console.error("Erreur lors de la connexion:", error);

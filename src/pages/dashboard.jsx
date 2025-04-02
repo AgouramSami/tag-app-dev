@@ -31,12 +31,6 @@ const Dashboard = () => {
       });
   }, [navigate]);
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
-    navigate("/login");
-  };
-
   if (loading) return <p className="tag-loading-text">Chargement...</p>;
 
   return (
@@ -45,18 +39,24 @@ const Dashboard = () => {
         Bienvenue, {user.nom} {user.prenom} !
       </h1>
       <p className="tag-dashboard-subtitle">
-        Vous êtes connecté en tant que {user.role}.
+        Vous êtes connecté en tant que{" "}
+        {user.permissions === "admin"
+          ? "Administrateur"
+          : user.permissions === "juriste"
+          ? "Juriste"
+          : "Utilisateur"}
+        .
       </p>
 
       {/* 🔥 Dashboard spécifique selon le rôle */}
-      {user.role === "admin" && (
+      {user.permissions === "admin" && (
         <div className="tag-admin-dashboard">
           <StatistiquesSatisfaction />
         </div>
       )}
 
       {/* Autres sections du dashboard selon le rôle */}
-      {user.role === "admin" ? (
+      {user.permissions === "admin" ? (
         <div className="tag-dashboard-grid">
           <div
             className="tag-dashboard-card"
@@ -115,10 +115,6 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-
-      <button className="tag-logout-btn" onClick={handleLogout}>
-        Se déconnecter
-      </button>
     </div>
   );
 };

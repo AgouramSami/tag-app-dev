@@ -42,6 +42,18 @@ const JuristeDashboard = () => {
           </button>
         </div>
 
+        {/* Section FAQ */}
+        <div className="dashboard-card">
+          <div className="card-icon">
+            <i className="fas fa-question-circle"></i>
+          </div>
+          <h2>FAQ</h2>
+          <p>Consultez et gérez les questions fréquentes.</p>
+          <button className="dashboard-btn" onClick={() => navigate("/faq")}>
+            Accéder
+          </button>
+        </div>
+
         {/* Section Profil */}
         <div className="dashboard-card">
           <div className="card-icon">

@@ -1,55 +1,79 @@
 /* 📌 Conteneur principal */
 .tag-dashboard-container {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  min-height: calc(100vh - 80px); /* Hauteur totale moins le header */
 }
 
 /* 📌 Titre et sous-titre */
 .tag-dashboard-title {
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: #2c3e50;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   text-align: center;
+  position: relative;
+}
+
+.tag-dashboard-title::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 3px;
+  background-color: #f3633f;
+  margin: 5px auto 0;
 }
 
 .tag-dashboard-subtitle {
-  font-size: 16px;
-  color: #333;
-  margin-bottom: 20px;
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2.5rem;
+  text-align: center;
 }
 
 /* 📌 Style de la grille */
 .tag-dashboard-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* 📌 Style des cartes */
 .tag-dashboard-card {
-  background-color: #f4f4f4;
-  border-radius: 8px;
-  padding: 20px;
-  width: calc(50% - 20px);
-  min-width: 250px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
   text-align: center;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 200px;
+}
+
+.tag-dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* 📌 Style du titre des blocs */
 .tag-dashboard-card h2 {
   color: #04416d;
-  font-size: 20px;
-  margin-bottom: 10px;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 /* 📌 Texte des blocs */
 .tag-dashboard-card p {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 15px;
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
 }
 
 /* 📌 Boutons */
@@ -57,10 +81,14 @@
   background-color: #f3633f;
   color: white;
   border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  max-width: 200px;
+  margin: 0 auto;
 }
 
 .tag-dashboard-btn:hover {
@@ -83,11 +111,46 @@
   background-color: darkred;
 }
 
-/* 📌 Responsive : Passe à 1 colonne sur mobile */
+/* 📌 Section admin */
+.tag-admin-dashboard {
+  margin-bottom: 3rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 📌 Responsive */
 @media screen and (max-width: 768px) {
-  .tag-dashboard-card {
-    width: 100%;
+  .tag-dashboard-container {
+    padding: 1rem;
   }
+
+  .tag-dashboard-title {
+    font-size: 2rem;
+  }
+
+  .tag-dashboard-subtitle {
+    font-size: 1rem;
+  }
+
+  .tag-dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .tag-dashboard-card {
+    padding: 1.5rem;
+    min-height: 180px;
+  }
+}
+
+/* 📌 Animation de chargement */
+.tag-loading-text {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+  margin-top: 2rem;
 }
 
 .tag-dashboard-section {

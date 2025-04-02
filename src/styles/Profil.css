@@ -2,7 +2,6 @@
 .tag-profil-container {
   padding: 40px 20px;
   min-height: 100vh;
-  background: white;
 }
 
 .tag-profil-card {
@@ -15,11 +14,23 @@
 
 /* 🎯 Titre */
 .tag-profil-card h1 {
+  text-align: center;
   font-size: 2.5rem;
   color: #2d3436;
   margin-bottom: 40px;
   font-weight: 700;
   letter-spacing: -0.5px;
+}
+.tag-profil-card h1::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: block;
+  width: 100px;
+  height: 3px;
+  background-color: #ff6633;
+  margin-top: 5px;
 }
 
 /* 🎯 Header */

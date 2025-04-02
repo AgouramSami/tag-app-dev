@@ -90,7 +90,9 @@ router.get("/", authMiddleware, async (req, res) => {
       filter = {
         $or: [
           { "reponse.juriste": req.user._id },
-          { statut: { $in: ["en attente", "traitée", "archivée"] } },
+          {
+            statut: { $in: ["en attente", "en cours", "traitée", "archivée"] },
+          },
         ],
       };
       console.log("🔍 Filtre appliqué:", JSON.stringify(filter, null, 2));
@@ -129,6 +131,33 @@ router.get("/", authMiddleware, async (req, res) => {
       "❌ Erreur serveur lors de la récupération des demandes :",
       error
     );
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
+// 📌 🔄 Récupérer une demande spécifique
+router.get("/:id", authMiddleware, async (req, res) => {
+  try {
+    const demande = await Demande.findById(req.params.id)
+      .populate("utilisateur", "nom prenom email")
+      .populate("messages.auteur", "nom prenom");
+
+    if (!demande) {
+      return res.status(404).json({ message: "Demande non trouvée" });
+    }
+
+    // Vérifier que l'utilisateur a le droit d'accéder à la demande
+    const isJuriste = req.user.permissions.includes("juriste");
+    const isOwner =
+      demande.utilisateur._id.toString() === req.user._id.toString();
+
+    if (!isJuriste && !isOwner) {
+      return res.status(403).json({ message: "Accès non autorisé" });
+    }
+
+    res.json(demande);
+  } catch (error) {
+    console.error("❌ Erreur lors de la récupération de la demande :", error);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });

@@ -1,81 +1,74 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/AdminDashboard.css";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="admin-dashboard">
-      <h1>Tableau de bord Administrateur</h1>
-      <div className="admin-grid">
-        {/* Statistiques */}
-        <div className="admin-card">
-          <h2>Statistiques</h2>
-          <div className="stats-container">
-            <div className="stat-item">
-              <div className="stat-value">150</div>
-              <div className="stat-label">Utilisateurs</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-value">45</div>
-              <div className="stat-label">Demandes en cours</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-value">89%</div>
-              <div className="stat-label">Taux de satisfaction</div>
-            </div>
+    <div className="admin-dashboard-container">
+      <h1 className="dashboard-title">Tableau de bord Administrateur</h1>
+
+      <div className="dashboard-grid">
+        {/* Section Panel Admin */}
+        <div className="dashboard-card">
+          <div className="card-icon">
+            <i className="fas fa-users-cog"></i>
           </div>
+          <h2>Panel Admin</h2>
+          <p>
+            Gérez les comptes, les rôles et les permissions des utilisateurs.
+          </p>
+          <button
+            className="dashboard-btn"
+            onClick={() => navigate("/admin/panel")}
+          >
+            Accéder
+          </button>
         </div>
 
-        {/* Gestion des utilisateurs */}
-        <div className="admin-card">
-          <h2>Gestion des utilisateurs</h2>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Rôle</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>John Doe</td>
-                <td>Juriste</td>
-                <td>
-                  <button className="action-button edit-button">
-                    Modifier
-                  </button>
-                  <button className="action-button delete-button">
-                    Supprimer
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        {/* Section Statistiques */}
+        <div className="dashboard-card">
+          <div className="card-icon">
+            <i className="fas fa-chart-line"></i>
+          </div>
+          <h2>Statistiques</h2>
+          <p>
+            Visualisez les statistiques globales et les performances du système.
+          </p>
+          <button
+            className="dashboard-btn"
+            onClick={() => navigate("/statistiques")}
+          >
+            Accéder
+          </button>
         </div>
 
-        {/* Gestion des demandes */}
-        <div className="admin-card">
-          <h2>Gestion des demandes</h2>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Statut</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>#12345</td>
-                <td>En attente</td>
-                <td>
-                  <button className="action-button edit-button">Voir</button>
-                  <button className="action-button delete-button">
-                    Archiver
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        {/* Section FAQ */}
+        <div className="dashboard-card">
+          <div className="card-icon">
+            <i className="fas fa-question-circle"></i>
+          </div>
+          <h2>FAQ</h2>
+          <p>Gérez les questions fréquentes et les réponses du système.</p>
+          <button className="dashboard-btn" onClick={() => navigate("/faq")}>
+            Accéder
+          </button>
+        </div>
+
+        {/* Section Profil */}
+        <div className="dashboard-card">
+          <div className="card-icon">
+            <i className="fas fa-user-shield"></i>
+          </div>
+          <h2>Mon Profil</h2>
+          <p>
+            Gérez vos informations personnelles et vos paramètres
+            administrateur.
+          </p>
+          <button className="dashboard-btn" onClick={() => navigate("/profil")}>
+            Accéder
+          </button>
         </div>
       </div>
     </div>

@@ -30,37 +30,51 @@ router.post("/signup", (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log("🔑 Tentative de connexion pour:", email);
 
     // Vérifier si l'utilisateur existe
     const user = await User.findOne({ email });
     if (!user) {
+      console.log("❌ Utilisateur non trouvé:", email);
       return res.status(400).json({ message: "Utilisateur non trouvé." });
     }
+    console.log("✅ Utilisateur trouvé");
 
     // Vérifier le mot de passe
+    console.log("🔒 Vérification du mot de passe...");
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log("🔍 Résultat de la comparaison:", isMatch);
+
     if (!isMatch) {
       // Incrémenter le compteur de tentatives
       user.tentativesConnexion += 1;
       await user.save();
-
+      console.log(
+        "❌ Mot de passe incorrect, tentatives:",
+        user.tentativesConnexion
+      );
       return res.status(400).json({ message: "Mot de passe incorrect." });
     }
+    console.log("✅ Mot de passe correct");
 
     // Vérifier si l'utilisateur est validé
     if (!user.isValidated) {
+      console.log("❌ Compte non validé");
       return res.status(403).json({
         message: "Votre compte n'est pas encore validé par un administrateur.",
       });
     }
+    console.log("✅ Compte validé");
 
     // Vérifier si le compte est bloqué
     if (user.compteBloquer) {
+      console.log("❌ Compte bloqué");
       return res.status(403).json({
         message:
           "Votre compte est bloqué. Veuillez contacter un administrateur.",
       });
     }
+    console.log("✅ Compte actif");
 
     // Réinitialiser le compteur de tentatives et mettre à jour la dernière connexion
     user.tentativesConnexion = 0;

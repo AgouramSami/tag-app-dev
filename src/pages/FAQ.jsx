@@ -269,13 +269,46 @@ const FAQ = () => {
 
   // Filtrage des FAQ
   const filteredFaqs = faqs.filter((faq) => {
+    const searchTerms = searchQuery
+      .toLowerCase()
+      .split(" ")
+      .filter((term) => term.length > 0);
     const matchesSearch =
-      faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faq.theme.toLowerCase().includes(searchQuery.toLowerCase());
+      searchTerms.length === 0 ||
+      searchTerms.every(
+        (term) =>
+          faq.question.toLowerCase().includes(term) ||
+          faq.reponse.toLowerCase().includes(term) ||
+          faq.theme.toLowerCase().includes(term)
+      );
 
     const matchesTheme = selectedTheme === "" || faq.theme === selectedTheme;
 
     return matchesSearch && matchesTheme;
+  });
+
+  // Trier les résultats par pertinence
+  const sortedFaqs = [...filteredFaqs].sort((a, b) => {
+    // Si un thème est sélectionné, prioriser les FAQ de ce thème
+    if (selectedTheme) {
+      if (a.theme === selectedTheme && b.theme !== selectedTheme) return -1;
+      if (b.theme === selectedTheme && a.theme !== selectedTheme) return 1;
+    }
+
+    // Si une recherche est active, prioriser les correspondances dans les questions
+    if (searchQuery) {
+      const aMatchesQuestion = a.question
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const bMatchesQuestion = b.question
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      if (aMatchesQuestion && !bMatchesQuestion) return -1;
+      if (bMatchesQuestion && !aMatchesQuestion) return 1;
+    }
+
+    // Par défaut, trier par date de création (plus récent en premier)
+    return new Date(b.dateCreation) - new Date(a.dateCreation);
   });
 
   // Composants
@@ -319,9 +352,9 @@ const FAQ = () => {
     <div className="tag-faq-container">
       <div className="tag-faq-header-container">
         <h1 className="tag-faq-title">FAQ</h1>
-        <span className="tag-faq-theme-badge">
-          {selectedTheme || "Tous les thèmes"}
-        </span>
+        {selectedTheme && (
+          <span className="tag-faq-theme-badge">{selectedTheme}</span>
+        )}
       </div>
       {error && <div className="tag-error-message">{error}</div>}
 
@@ -330,7 +363,7 @@ const FAQ = () => {
           <input
             type="text"
             className="tag-search-input"
-            placeholder="Rechercher une question ou un thème..."
+            placeholder="Rechercher dans les questions, réponses ou thèmes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -363,9 +396,25 @@ const FAQ = () => {
       )}
 
       <div className="tag-faq-list">
-        {filteredFaqs.map((faq) => (
-          <FAQItem key={faq._id} faq={faq} />
-        ))}
+        {sortedFaqs.length === 0 ? (
+          <div className="tag-faq-no-results">
+            <i className="fas fa-search"></i>
+            <p>Aucune FAQ ne correspond à votre recherche</p>
+            {searchQuery && (
+              <button
+                className="tag-faq-reset-search"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedTheme("");
+                }}
+              >
+                Réinitialiser la recherche
+              </button>
+            )}
+          </div>
+        ) : (
+          sortedFaqs.map((faq) => <FAQItem key={faq._id} faq={faq} />)
+        )}
       </div>
 
       {isModalOpen && (
