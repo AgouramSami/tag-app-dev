@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import "../styles/Signup.css";
 import communes from "../data/communes.json"; // Importer la liste des communes
 
@@ -120,17 +119,36 @@ const Signup = () => {
         JSON.stringify(formData, null, 2)
       );
 
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/signup",
-        formData
-      );
+      const response = await fetch(`${API_URL}/api/auth/signup`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nom: formData.nom,
+          prenom: formData.prenom,
+          email: formData.email,
+          password: formData.password,
+          fonction: formData.fonction,
+          commune: formData.commune,
+          telephone: formData.telephone,
+        }),
+      });
 
-      console.log("🟢 Inscription réussie :", response.data);
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'inscription");
+      }
+
+      const data = await response.json();
       setIsSubmitted(true);
+      navigate("/login");
     } catch (error) {
       console.error("🔴 Erreur lors de l'inscription :", error);
       setErrors({
-        api: error.response?.data?.message || "Erreur lors de l'inscription.",
+        api:
+          error.response?.data?.message ||
+          "Une erreur est survenue lors de l'inscription",
       });
     }
   };

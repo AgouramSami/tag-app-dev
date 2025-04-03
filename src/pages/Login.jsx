@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import axios from "axios";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import "../styles/Login.css";
 import { useAuth } from "../context/AuthContext";
+
+const API_URL = "http://localhost:5000";
 
 const Login = () => {
   const { login } = useAuth();
@@ -10,6 +11,8 @@ const Login = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,42 +24,34 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    setError("");
     setLoading(true);
 
-    // Validation basique
-    if (!formData.email || !formData.password) {
-      setError("Veuillez remplir tous les champs");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        formData
-      );
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-      if (response.data.token) {
-        await login(response.data);
-      } else {
-        setError("Erreur d'authentification. Veuillez réessayer.");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Identifiants invalides");
       }
-    } catch (err) {
-      console.error("Erreur de connexion:", err);
-      if (err.response?.status === 400) {
-        if (err.response.data.message === "Utilisateur non trouvé.") {
-          setError("Aucun compte n'existe avec cet email.");
-        } else if (err.response.data.message === "Mot de passe incorrect.") {
-          setError("Mot de passe incorrect. Veuillez réessayer.");
-        } else {
-          setError(err.response.data.message || "Erreur de connexion");
-        }
-      } else if (err.response?.status === 403) {
-        setError("Votre compte n'est pas encore validé ou est bloqué.");
-      } else {
-        setError("Une erreur est survenue. Veuillez réessayer plus tard.");
-      }
+
+      login(data);
+      // Rediriger vers la page précédente ou la page d'accueil
+      const redirectPath = location.state?.from?.pathname || "/";
+      navigate(redirectPath);
+    } catch (error) {
+      setError(error.message || "Une erreur est survenue lors de la connexion");
     } finally {
       setLoading(false);
     }

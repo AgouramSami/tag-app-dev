@@ -1,5 +1,5 @@
 import React from "react";
-import "./AddUserModal.css";
+import "../styles/AddUserModal.css";
 
 const AddUserModal = ({
   isOpen,

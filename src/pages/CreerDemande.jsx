@@ -13,6 +13,7 @@ const CreerDemande = () => {
   const [faqSuggestions, setFaqSuggestions] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+  const [communes, setCommunes] = useState([]);
 
   const handleFaqClick = (faq) => {
     setObjet(faq.question);
@@ -49,6 +50,27 @@ const CreerDemande = () => {
     }
   }, [objet]);
 
+  useEffect(() => {
+    const fetchCommunes = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/communes`, {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error("Erreur lors du chargement des communes");
+        }
+
+        const data = await response.json();
+        setCommunes(data);
+      } catch (error) {
+        console.error("Erreur lors du chargement des communes:", error);
+      }
+    };
+
+    fetchCommunes();
+  }, []);
+
   const handleFileChange = (e) => {
     const allowedTypes = ["application/pdf", "image/png", "image/jpeg"];
     const selectedFiles = Array.from(e.target.files);
@@ -72,29 +94,36 @@ const CreerDemande = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!description.trim()) {
-      alert("La description ne peut pas être vide !");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("theme", theme);
-    formData.append("objet", objet);
-    formData.append("description", description);
-    piecesJointes.forEach((file) => {
-      formData.append("fichiers", file);
-    });
-
     try {
-      await axios.post("http://localhost:5000/api/demandes", formData, {
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-          "Content-Type": "multipart/form-data",
-        },
+      const formData = new FormData();
+      formData.append("theme", theme);
+      formData.append("objet", objet);
+      formData.append("description", description);
+      formData.append("commune", commune);
+
+      if (piecesJointes.length > 0) {
+        for (let i = 0; i < piecesJointes.length; i++) {
+          formData.append("fichiers", piecesJointes[i]);
+        }
+      }
+
+      const response = await fetch(`${API_URL}/api/demandes`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
       });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la création de la demande");
+      }
+
       setShowModal(true);
     } catch (error) {
-      console.error("Erreur lors de l'envoi de la demande :", error);
+      console.error("Erreur lors de la création de la demande:", error);
+      setError(
+        error.response?.data?.message ||
+          "Une erreur est survenue lors de la création de la demande"
+      );
     }
   };
 

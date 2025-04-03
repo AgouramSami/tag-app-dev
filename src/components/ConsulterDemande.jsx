@@ -24,23 +24,12 @@ const ConsulterDemande = ({
     console.log("useEffect ConsulterDemande - demande:", demande);
     const fetchMessages = async () => {
       try {
-        const token = sessionStorage.getItem("token");
-        if (!token) {
-          console.error("Token non trouvé");
-          return;
-        }
-
-        // Si la demande est déjà complète avec ses messages, pas besoin de la recharger
-        if (demande.messages && demande.messages.length > 0) {
-          setMessages(demande.messages);
-          return;
-        }
-
-        const response = await fetch(`${API_URL}/api/demandes/${demande._id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `${API_URL}/api/demandes/${demande._id}/messages`,
+          {
+            credentials: "include",
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();
@@ -64,27 +53,19 @@ const ConsulterDemande = ({
 
   const fetchCommune = async () => {
     try {
-      const token = sessionStorage.getItem("token");
-      if (!token || !demande?.commune) {
-        console.error("Token ou commune non trouvé");
-        return;
-      }
-
-      const communeResponse = await fetch(
+      const response = await fetch(
         `${API_URL}/api/communes/${demande.commune}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         }
       );
-      if (communeResponse.ok) {
-        const communeData = await communeResponse.json();
+      if (response.ok) {
+        const communeData = await response.json();
         setCommune(communeData);
       } else {
         console.error(
           "Erreur lors de la récupération de la commune:",
-          await communeResponse.text()
+          await response.text()
         );
       }
     } catch (error) {
@@ -104,12 +85,6 @@ const ConsulterDemande = ({
     }
 
     try {
-      const token = sessionStorage.getItem("token");
-      if (!token) {
-        alert("Vous devez être connecté pour envoyer un message");
-        return;
-      }
-
       const formData = new FormData();
       formData.append("texte", message);
       formData.append("type", isJuriste ? "reponse" : "demande");
@@ -122,9 +97,7 @@ const ConsulterDemande = ({
         `${API_URL}/api/demandes/${demande._id}/message`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
           body: formData,
         }
       );
@@ -134,14 +107,8 @@ const ConsulterDemande = ({
       }
 
       const messageData = await response.json();
-
-      // Utiliser directement le message retourné par le backend
       const nouveauMessage = messageData.message;
-
-      // Mise à jour locale des messages
       setMessages((prevMessages) => [...prevMessages, nouveauMessage]);
-
-      // Réinitialisation du formulaire
       setMessage("");
       setFichier(null);
       scrollToBottom();
@@ -155,14 +122,13 @@ const ConsulterDemande = ({
 
   const handleCloturer = async (note) => {
     try {
-      const token = sessionStorage.getItem("token");
       const response = await fetch(
         `${API_URL}/api/demandes/${demande._id}/cloturer`,
         {
           method: "PUT",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ note }),
         }

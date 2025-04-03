@@ -20,25 +20,12 @@ const JuristePanel = () => {
     const fetchDemandes = async () => {
       try {
         setIsLoading(true);
-        const token = sessionStorage.getItem("token");
-
-        if (!token) {
-          console.error("❌ Aucun token trouvé dans le sessionStorage");
-          setError("Veuillez vous connecter pour accéder à cette page");
-          navigate("/login");
-          return;
-        }
-
-        console.log("🔑 Token trouvé:", token.substring(0, 20) + "...");
-
         const response = await fetch(`${API_URL}/api/demandes`, {
+          credentials: "include",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
-
-        console.log("📡 Statut de la réponse:", response.status);
 
         if (!response.ok) {
           const errorData = await response.json();
@@ -49,7 +36,6 @@ const JuristePanel = () => {
         }
 
         const data = await response.json();
-        console.log("✅ Données reçues:", data);
         setDemandes(data);
       } catch (err) {
         console.error("❌ Erreur:", err);
@@ -83,7 +69,6 @@ const JuristePanel = () => {
 
   const handleSubmitReponse = async (reponse) => {
     try {
-      const token = sessionStorage.getItem("token");
       const formData = new FormData();
 
       if (!reponse.texte) {
@@ -97,19 +82,11 @@ const JuristePanel = () => {
         formData.append("fichiersReponse", reponse.fichier);
       }
 
-      console.log("📤 Envoi de la réponse:", {
-        texte: reponse.texte,
-        fichier: reponse.fichier?.name,
-        statut: "traitée",
-      });
-
       const response = await fetch(
         `${API_URL}/api/demandes/${demandeSelectionnee._id}/repondre`,
         {
           method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
           body: formData,
         }
       );

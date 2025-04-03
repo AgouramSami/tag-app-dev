@@ -332,7 +332,7 @@ const StatistiquesSatisfaction = ({
               <ListItemText>Exporter en PDF</ListItemText>
             </MenuItem>
           </Menu>
-              </div>
+        </div>
       </Box>
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>

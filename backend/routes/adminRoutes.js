@@ -58,11 +58,14 @@ router.put(
       if (!user)
         return res.status(404).json({ message: "Utilisateur non trouvé" });
 
-      user.isValidated = req.body.isValidated;
+      user.isValidated = !user.isValidated;
       await user.save();
 
       console.log("✅ Utilisateur mis à jour :", user);
-      res.status(200).json({ message: "Utilisateur mis à jour" });
+      res.status(200).json({
+        message: "Utilisateur mis à jour",
+        isValidated: user.isValidated,
+      });
     } catch (err) {
       console.error("❌ Erreur serveur :", err);
       res.status(500).json({ message: "Erreur serveur" });

@@ -110,15 +110,7 @@ const FAQ = () => {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-  });
-
-  // Intercepteur pour ajouter le token
-  api.interceptors.request.use((config) => {
-    const token = sessionStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+    withCredentials: true,
   });
 
   // Fonctions API
@@ -135,26 +127,12 @@ const FAQ = () => {
 
   // Vérification de l'authentification
   useEffect(() => {
-    const storedUser = JSON.parse(sessionStorage.getItem("user"));
-    const token = sessionStorage.getItem("token");
-
-    if (!storedUser || !token) {
-      setError("Veuillez vous connecter pour accéder à cette page");
-      return;
-    }
-
-    setUser(storedUser);
     fetchFaqs();
     fetchThemes();
   }, []);
 
   // Vérification des permissions
   const checkJuristPermissions = () => {
-    const token = sessionStorage.getItem("token");
-    if (!token) {
-      setError("Utilisateur non connecté");
-      return false;
-    }
     if (!user) {
       setError("Utilisateur non connecté");
       return false;
@@ -248,17 +226,12 @@ const FAQ = () => {
 
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cette FAQ ?")) {
       try {
-        const token = sessionStorage.getItem("token");
         await api.delete(`/faqs/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true,
         });
-
         await fetchFaqs();
-        setError("");
       } catch (error) {
-        console.error("Erreur de suppression:", error.response?.data);
+        console.error("Erreur lors de la suppression de la FAQ :", error);
         setError(
           error.response?.data?.message ||
             "Erreur lors de la suppression de la FAQ"

@@ -1,37 +1,74 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 
+const API_URL = "http://localhost:5000";
+
 const AuthContext = createContext(null);
+
+// Liste des routes publiques qui ne nécessitent pas d'authentification
+const publicRoutes = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+];
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    const initAuth = () => {
-      const storedToken = sessionStorage.getItem("token");
-      const storedUser = JSON.parse(sessionStorage.getItem("user"));
-
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(storedUser);
-        setIsAuthenticated(true);
+    const checkAuth = async () => {
+      // Ne pas vérifier l'authentification sur les routes publiques
+      if (publicRoutes.includes(location.pathname)) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      try {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          // Si l'utilisateur n'est pas authentifié et n'est pas sur une route publique
+          setUser(null);
+          setIsAuthenticated(false);
+          if (!publicRoutes.includes(location.pathname)) {
+            navigate("/login");
+          }
+          return;
+        }
+
+        const data = await response.json();
+        if (data.user) {
+          setUser(data.user);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        // En cas d'erreur, on considère que l'utilisateur n'est pas authentifié
+        setUser(null);
+        setIsAuthenticated(false);
+        if (!publicRoutes.includes(location.pathname)) {
+          navigate("/login");
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
-    initAuth();
-  }, []);
+    checkAuth();
+  }, [location.pathname, navigate]);
 
   const getDefaultRoute = (permissions) => {
     const currentPermissions = permissions || user?.permissions;
     switch (currentPermissions) {
       case "admin":
-        return "/admin/dashboard";
+        return "/admin";
       case "juriste":
         return "/juriste";
       case "user":
@@ -42,18 +79,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (userData) => {
     try {
-      const newToken = userData.token;
-      const newUser = userData.user;
-
-      sessionStorage.setItem("token", newToken);
-      sessionStorage.setItem("user", JSON.stringify(newUser));
-
-      setToken(newToken);
-      setUser(newUser);
+      setUser(userData.user);
       setIsAuthenticated(true);
 
       // Redirection selon le rôle
-      switch (newUser.permissions) {
+      switch (userData.user.permissions) {
         case "admin":
           navigate("/admin");
           break;
@@ -72,17 +102,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
-    setToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
-    navigate("/login");
+  const logout = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la déconnexion");
+      }
+
+      setUser(null);
+      setIsAuthenticated(false);
+      navigate("/login");
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion:", error);
+    }
   };
 
   const updateUser = (updatedUser) => {
-    sessionStorage.setItem("user", JSON.stringify(updatedUser));
     setUser(updatedUser);
   };
 
@@ -104,7 +143,6 @@ export const AuthProvider = ({ children }) => {
     checkAccess,
     getDefaultRoute,
     updateUser,
-    token,
   };
 
   if (loading) {

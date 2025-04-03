@@ -1,23 +1,22 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import AddUserModal from "../components/AddUserModal";
+import CreateUserModal from "../components/CreateUserModal";
 import "../styles/AdminPanel.css";
 import ModalSubmit from "../components/ModalSubmit";
-import AddUserModal from "../components/AddUserModal";
 import SearchFilter from "../components/SearchFilter";
 
+const API_URL = "http://localhost:5000";
+
 const AdminPanel = () => {
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [users, setUsers] = useState([]);
-  const [error, setError] = useState(null);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState("");
-  const [submitType, setSubmitType] = useState("success");
   const [communes, setCommunes] = useState([]);
   const [fonctions, setFonctions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [newUser, setNewUser] = useState({
     nom: "",
     prenom: "",
@@ -26,133 +25,191 @@ const AdminPanel = () => {
     commune: "",
     telephone: "",
     permissions: "user",
-    isValidated: true,
   });
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("");
+  const [submitType, setSubmitType] = useState("success");
 
   useEffect(() => {
-    console.log("Chargement des données...");
-    fetchUsers();
-    fetchCommunes();
-    fetchFonctions();
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        console.log("Chargement des données...");
+
+        // Récupérer les communes
+        const communesResponse = await fetch(`${API_URL}/api/communes`, {
+          credentials: "include",
+        });
+        if (!communesResponse.ok) {
+          throw new Error("Erreur lors de la récupération des communes");
+        }
+        const communesData = await communesResponse.json();
+        setCommunes(communesData);
+
+        // Récupérer les fonctions
+        const fonctionsResponse = await fetch(`${API_URL}/api/fonctions`, {
+          credentials: "include",
+        });
+        if (!fonctionsResponse.ok) {
+          throw new Error("Erreur lors de la récupération des fonctions");
+        }
+        const fonctionsData = await fonctionsResponse.json();
+        setFonctions(fonctionsData);
+
+        // Récupérer les utilisateurs
+        const usersResponse = await fetch(`${API_URL}/api/admin/users`, {
+          credentials: "include",
+        });
+        if (!usersResponse.ok) {
+          throw new Error("Erreur lors de la récupération des utilisateurs");
+        }
+        const usersData = await usersResponse.json();
+        setUsers(usersData);
+      } catch (error) {
+        console.error("Erreur:", error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const checkAuth = () => {
-    const token = sessionStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return false;
-    }
-    return token;
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewUser((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const fetchUsers = async () => {
-    const token = checkAuth();
-    if (!token) return;
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const res = await axios.get("http://localhost:5000/api/admin/users", {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await fetch(`${API_URL}/api/admin/create-user`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newUser),
       });
-      setUsers(res.data);
-    } catch (error) {
-      if (error.response?.status === 401) {
-        sessionStorage.removeItem("token");
-        navigate("/login");
-      } else {
-        setError("Erreur lors du chargement des utilisateurs.");
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la création de l'utilisateur");
       }
-    }
-  };
 
-  const fetchCommunes = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/communes");
-      setCommunes(res.data);
+      const data = await response.json();
+      console.log("Réponse du serveur:", data); // Pour le débogage
+
+      // Vérifier si l'utilisateur a été créé avec succès
+      if (data.message === "Utilisateur créé et e-mail envoyé avec succès !") {
+        // Récupérer la liste mise à jour des utilisateurs
+        const usersResponse = await fetch(`${API_URL}/api/admin/users`, {
+          credentials: "include",
+        });
+        if (!usersResponse.ok) {
+          throw new Error("Erreur lors de la récupération des utilisateurs");
+        }
+        const usersData = await usersResponse.json();
+        setUsers(usersData);
+
+        setShowAddUserModal(false);
+        setNewUser({
+          nom: "",
+          prenom: "",
+          email: "",
+          fonction: "",
+          commune: "",
+          telephone: "",
+          permissions: "user",
+        });
+        setSubmitMessage("Utilisateur créé avec succès !");
+        setSubmitType("success");
+        setShowSubmitModal(true);
+      } else {
+        throw new Error(
+          data.message || "Erreur lors de la création de l'utilisateur"
+        );
+      }
     } catch (error) {
-      console.error("Erreur lors du chargement des communes", error);
-    }
-  };
-
-  const fetchFonctions = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/fonctions");
-      setFonctions(res.data);
-    } catch (error) {
-      console.error("Erreur lors du chargement des fonctions", error);
-    }
-  };
-
-  const toggleValidation = async (userId, isValidated) => {
-    const token = checkAuth();
-    if (!token) return;
-
-    if (!userId) {
-      console.error("ID utilisateur manquant");
-      setSubmitMessage("Erreur : ID utilisateur manquant");
+      console.error("Erreur:", error);
+      setError(error.message);
+      setSubmitMessage("Erreur lors de la création de l'utilisateur");
       setSubmitType("error");
       setShowSubmitModal(true);
-      return;
     }
+  };
 
-    console.log("Tentative de mise à jour pour l'utilisateur:", userId);
-    console.log("État actuel:", isValidated);
-
+  const toggleValidation = async (userId) => {
     try {
-      const res = await axios.put(
-        `http://localhost:5000/api/admin/toggle-validation/${userId}`,
-        { isValidated: !isValidated },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await fetch(
+        `${API_URL}/api/admin/toggle-validation/${userId}`,
+        {
+          method: "PUT",
+          credentials: "include",
+        }
       );
 
-      console.log("Réponse du serveur:", res.data);
+      if (!response.ok) {
+        throw new Error("Erreur lors de la modification de la validation");
+      }
 
-      setSubmitMessage(
-        `Utilisateur ${isValidated ? "désactivé" : "activé"} avec succès !`
-      );
-      setSubmitType("success");
-      setShowSubmitModal(true);
+      const data = await response.json();
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user._id === userId
-            ? { ...user, isValidated: !user.isValidated }
+            ? { ...user, isValidated: data.isValidated }
             : user
         )
       );
-    } catch (err) {
-      if (err.response?.status === 401) {
-        sessionStorage.removeItem("token");
-        navigate("/login");
-      } else {
-        setSubmitMessage("Erreur lors de la mise à jour du statut.");
-        setSubmitType("error");
-        setShowSubmitModal(true);
-      }
+      setSubmitMessage(
+        `Utilisateur ${data.isValidated ? "activé" : "désactivé"} avec succès !`
+      );
+      setSubmitType("success");
+      setShowSubmitModal(true);
+    } catch (error) {
+      console.error("Erreur:", error);
+      setError(error.message);
+      setSubmitMessage("Erreur lors de la modification du statut");
+      setSubmitType("error");
+      setShowSubmitModal(true);
     }
   };
 
   const handleDelete = async (userId) => {
-    const token = checkAuth();
-    if (!token) return;
+    if (
+      window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")
+    ) {
+      try {
+        const response = await fetch(`${API_URL}/api/admin/delete/${userId}`, {
+          method: "DELETE",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-    if (!window.confirm("Voulez-vous vraiment supprimer cet utilisateur ?")) {
-      return;
-    }
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(
+            data.message || "Erreur lors de la suppression de l'utilisateur"
+          );
+        }
 
-    try {
-      await axios.delete(`http://localhost:5000/api/admin/delete/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setSubmitMessage("Utilisateur supprimé avec succès !");
-      setSubmitType("success");
-      setShowSubmitModal(true);
-      setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
-    } catch (err) {
-      if (err.response?.status === 401) {
-        sessionStorage.removeItem("token");
-        navigate("/login");
-      } else {
-        setSubmitMessage("Erreur lors de la suppression de l'utilisateur.");
+        setUsers((prevUsers) =>
+          prevUsers.filter((user) => user._id !== userId)
+        );
+        setSubmitMessage("Utilisateur supprimé avec succès !");
+        setSubmitType("success");
+        setShowSubmitModal(true);
+      } catch (error) {
+        console.error("Erreur:", error);
+        setError(error.message);
+        setSubmitMessage("Erreur lors de la suppression de l'utilisateur");
         setSubmitType("error");
         setShowSubmitModal(true);
       }
@@ -181,100 +238,6 @@ const AdminPanel = () => {
       .includes(searchTerm.toLowerCase())
   );
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewUser((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    const token = checkAuth();
-    if (!token) return;
-
-    // Vérifier que tous les champs requis sont remplis
-    if (
-      !newUser.nom ||
-      !newUser.prenom ||
-      !newUser.email ||
-      !newUser.fonction ||
-      !newUser.commune ||
-      !newUser.telephone
-    ) {
-      setSubmitMessage("Veuillez remplir tous les champs obligatoires.");
-      setSubmitType("error");
-      setShowSubmitModal(true);
-      return;
-    }
-
-    try {
-      const userData = {
-        ...newUser,
-        isValidated: true, // Forcer à true
-      };
-      console.log("Envoi des données utilisateur:", userData);
-
-      const res = await axios.post(
-        "http://localhost:5000/api/admin/create-user",
-        userData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("Réponse du serveur:", res.data);
-
-      if (res.data.user) {
-        // S'assurer que l'utilisateur a toutes les propriétés nécessaires
-        const newUserWithDefaults = {
-          ...res.data.user,
-          isValidated: true, // Forcer à true même si pas dans la réponse
-        };
-        console.log("Nouvel utilisateur à ajouter:", newUserWithDefaults);
-
-        // Mettre à jour la liste des utilisateurs
-        setUsers((prevUsers) => [...prevUsers, newUserWithDefaults]);
-
-        // Rafraîchir la liste complète pour s'assurer d'avoir les données à jour
-        fetchUsers();
-      }
-
-      setSubmitMessage(res.data.message || "Utilisateur créé avec succès !");
-      setSubmitType("success");
-      setShowSubmitModal(true);
-      setShowModal(false);
-      setNewUser({
-        nom: "",
-        prenom: "",
-        email: "",
-        fonction: "",
-        commune: "",
-        telephone: "",
-        permissions: "user",
-        isValidated: true,
-      });
-    } catch (error) {
-      console.error(
-        "Erreur lors de la création :",
-        error.response?.data || error
-      );
-      setSubmitMessage(
-        error.response?.data?.message ||
-          "Erreur lors de la création de l'utilisateur."
-      );
-      setSubmitType("error");
-      setShowSubmitModal(true);
-    }
-  };
-
-  const filterOptions = [
-    { value: "tous", label: "Tous les statuts" },
-    { value: "validated", label: "Validé" },
-    { value: "not-validated", label: "Non validé" },
-  ];
-
   const handleOpenModal = () => {
     setNewUser({
       nom: "",
@@ -284,9 +247,8 @@ const AdminPanel = () => {
       commune: "",
       telephone: "",
       permissions: "user",
-      isValidated: true,
     });
-    setShowModal(true);
+    setShowAddUserModal(true);
   };
 
   return (
@@ -359,13 +321,12 @@ const AdminPanel = () => {
           <tbody>
             {filteredUsers.map((user) => (
               <tr key={user._id}>
-                <td key={`name-${user._id}`}>
+                <td>
                   {user.nom} {user.prenom}
                 </td>
-                <td key={`email-${user._id}`}>{user.email}</td>
-                <td key={`perm-${user._id}`}>{user.permissions}</td>
+                <td>{user.email}</td>
+                <td>{user.permissions}</td>
                 <td
-                  key={`status-${user._id}`}
                   className={`status ${
                     user.isValidated ? "validated" : "not-validated"
                   }`}
@@ -376,14 +337,14 @@ const AdminPanel = () => {
                       return;
                     }
                     console.log("Toggle validation pour:", user);
-                    toggleValidation(user._id, user.isValidated);
+                    toggleValidation(user._id);
                   }}
                 >
                   <span className="status-icon">
                     {user.isValidated ? "✅" : "❌"}
                   </span>
                 </td>
-                <td key={`action-${user._id}`}>
+                <td>
                   <button
                     className="delete-btn"
                     onClick={() => handleDelete(user._id)}
@@ -403,11 +364,11 @@ const AdminPanel = () => {
       </div>
 
       <AddUserModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
+        isOpen={showAddUserModal}
+        onClose={() => setShowAddUserModal(false)}
         newUser={newUser}
         onInputChange={handleInputChange}
-        onSubmit={handleCreateUser}
+        onSubmit={handleSubmit}
         communes={communes}
         fonctions={fonctions}
       />

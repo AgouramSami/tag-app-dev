@@ -5,8 +5,63 @@
   right: 0;
   background-color: rgba(255, 255, 255, 0.95);
   padding: 1rem;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.cookie-banner .MuiPaper-root {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.cookie-banner .MuiButton-root {
+  text-transform: none;
+  font-weight: 500;
+  padding: 8px 24px;
+}
+
+.cookie-banner .MuiFormControlLabel-root {
+  margin: 0;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.cookie-banner .MuiFormControlLabel-root:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.cookie-banner .MuiSwitch-root {
+  margin-right: 8px;
+}
+
+.cookie-banner .MuiTypography-subtitle2 {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.cookie-banner .MuiTypography-body2 {
+  line-height: 1.5;
+}
+
+.cookie-banner .MuiLink-root {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.cookie-banner .MuiLink-root:hover {
+  color: #1976d2;
 }
 
 .cookie-content {
@@ -60,6 +115,21 @@
 
 .cookie-button.decline:hover {
   background-color: rgba(3, 49, 84, 0.1);
+}
+
+@media (max-width: 600px) {
+  .cookie-banner {
+    padding: 16px !important;
+  }
+
+  .cookie-banner .MuiBox-root {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cookie-banner .MuiButton-root {
+    width: 100%;
+  }
 }
 
 @media (max-width: 768px) {

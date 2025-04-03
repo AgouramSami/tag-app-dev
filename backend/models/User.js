@@ -84,6 +84,14 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  resetToken: {
+    type: String,
+    default: undefined,
+  },
+  resetTokenExpiry: {
+    type: Date,
+    default: undefined,
+  },
 });
 
 // Middleware pour mettre à jour dateModification avant chaque sauvegarde

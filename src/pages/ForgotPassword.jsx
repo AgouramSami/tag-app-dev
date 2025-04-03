@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import "../styles/ForgotPassword.css";
+
+const API_URL = "http://localhost:5000";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -11,22 +12,31 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
     setError("");
+    setMessage("");
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/forgot-password",
-        { email }
-      );
+      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
 
-      setMessage(response.data.message);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Erreur lors de l'envoi de l'email");
+      }
+
+      setMessage(data.message);
       setEmail("");
-    } catch (err) {
+    } catch (error) {
+      console.error("Erreur:", error);
       setError(
-        err.response?.data?.message ||
-          "Une erreur est survenue. Veuillez réessayer."
+        error.message || "Une erreur est survenue lors de l'envoi de l'email"
       );
     } finally {
       setLoading(false);
@@ -39,6 +49,7 @@ const ForgotPassword = () => {
         <div className="logo-container">
           <img src="src/assets/tag_logo.svg" alt="TAG Logo" className="logo" />
         </div>
+
         <form onSubmit={handleSubmit}>
           <label className="label_signup">Entrez votre email</label>
           <input

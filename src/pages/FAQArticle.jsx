@@ -1,19 +1,30 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import "../styles/FAQArticle.css";
 
 const FAQArticle = () => {
   const { id } = useParams();
   const [faq, setFaq] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchFAQ = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/faqs/${id}`);
-        setFaq(res.data);
+        const response = await fetch(`${API_URL}/api/faqs/${id}`, {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error("Erreur lors du chargement de l'article");
+        }
+
+        const data = await response.json();
+        setFaq(data);
       } catch (error) {
-        console.error("Erreur lors du chargement de l'article FAQ :", error);
+        setError(
+          error.response?.data?.message ||
+            "Une erreur est survenue lors du chargement de l'article"
+        );
       }
     };
 

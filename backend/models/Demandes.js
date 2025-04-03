@@ -45,6 +45,8 @@ const DemandeSchema = new mongoose.Schema({
   dateCreation: { type: Date, default: Date.now },
   dateModification: { type: Date, default: Date.now },
   dateCloture: { type: Date },
+  dateArchivage: { type: Date },
+  dateSuppression: { type: Date },
   note: { type: Number, min: 1, max: 5 },
   commentaireNote: { type: String },
   strateCommune: {
@@ -85,36 +87,35 @@ DemandeSchema.methods.ajouterMessage = async function (messageData) {
   await this.save();
 };
 
-// Méthode pour clôturer une demande
-DemandeSchema.methods.cloturer = async function (note, commentaire) {
+// Méthode pour archiver une demande
+DemandeSchema.methods.archiver = async function (note, commentaire) {
   this.statut = "archivée";
   this.note = note;
   this.commentaireNote = commentaire;
   this.dateCloture = new Date();
+  this.dateArchivage = new Date();
+
+  // Date de suppression fixée à 5 ans après la date d'archivage
+  this.dateSuppression = new Date(this.dateArchivage);
+  this.dateSuppression.setFullYear(this.dateSuppression.getFullYear() + 5);
+
   return this.save();
 };
 
-// Migration des anciennes demandes clôturées
-DemandeSchema.statics.migrerDemandesClotureesVersArchivees = async function () {
-  return this.updateMany(
-    { statut: "clôturé" },
-    { $set: { statut: "archivée" } }
-  );
+// Méthode pour supprimer les demandes expirées
+DemandeSchema.statics.supprimerDemandesExpirees = async function () {
+  const dateLimite = new Date();
+  const demandesASupprimer = await this.find({
+    statut: "archivée",
+    dateSuppression: { $lte: dateLimite },
+  });
+
+  for (const demande of demandesASupprimer) {
+    await demande.deleteOne();
+    console.log(`✅ Demande ${demande._id} supprimée conformément au RGPD`);
+  }
 };
 
 const Demande = mongoose.model("Demande", DemandeSchema);
-
-// Exécuter la migration au démarrage
-Demande.migrerDemandesClotureesVersArchivees()
-  .then((result) => {
-    if (result.modifiedCount > 0) {
-      console.log(
-        `✅ ${result.modifiedCount} demandes migrées de "clôturé" vers "archivée"`
-      );
-    }
-  })
-  .catch((err) => {
-    console.error("❌ Erreur lors de la migration des demandes:", err);
-  });
 
 module.exports = Demande;

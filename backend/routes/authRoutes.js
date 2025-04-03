@@ -10,6 +10,9 @@ const {
 const upload = require("../middleware/uploadMiddleware");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const mongoose = require("mongoose");
+const path = require("path");
+const fs = require("fs");
 require("dotenv").config();
 
 // Vérification de la force du mot de passe
@@ -24,6 +27,52 @@ router.post("/signup", (req, res) => {
     message:
       "L'inscription est désactivée. Seuls les administrateurs peuvent créer des comptes.",
   });
+});
+
+// Route pour créer l'administrateur initial (à supprimer après utilisation)
+router.post("/create-admin", async (req, res) => {
+  try {
+    // Vérifier si un admin existe déjà
+    const adminExists = await User.findOne({ permissions: "admin" });
+    if (adminExists) {
+      return res.status(403).json({
+        message: "Un administrateur existe déjà. Cette route est désactivée.",
+      });
+    }
+
+    const { email, password } = req.body;
+
+    // Hasher le mot de passe
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Créer l'administrateur
+    const admin = new User({
+      email,
+      password: hashedPassword,
+      nom: "Admin",
+      prenom: "System",
+      fonction: "administrateur",
+      commune: new mongoose.Types.ObjectId(), // Commune par défaut
+      permissions: "admin",
+      isValidated: true,
+      isActive: true,
+    });
+
+    await admin.save();
+
+    res.status(201).json({
+      message: "Administrateur créé avec succès.",
+      user: {
+        email: admin.email,
+        nom: admin.nom,
+        prenom: admin.prenom,
+        permissions: admin.permissions,
+      },
+    });
+  } catch (error) {
+    console.error("Erreur lors de la création de l'administrateur:", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
 });
 
 // ✅ Route de connexion sécurisée
@@ -92,10 +141,17 @@ router.post("/login", async (req, res) => {
       { expiresIn: "24h" }
     );
 
-    // Envoyer la réponse au front
+    // Définir le cookie HTTPOnly
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // true en production
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // lax en développement
+      maxAge: 24 * 60 * 60 * 1000, // 24 heures
+    });
+
+    // Envoyer la réponse au front sans le token
     res.status(200).json({
       message: "Connexion réussie",
-      token,
       user: {
         _id: user._id,
         email: user.email,
@@ -114,6 +170,12 @@ router.post("/login", async (req, res) => {
     console.error("Erreur lors de la connexion:", error);
     res.status(500).json({ message: "Erreur serveur" });
   }
+});
+
+// Ajouter une route de déconnexion qui supprime le cookie
+router.post("/logout", (req, res) => {
+  res.clearCookie("jwt");
+  res.status(200).json({ message: "Déconnexion réussie" });
 });
 
 router.post(
@@ -183,37 +245,44 @@ router.get(
   }
 );
 
-router.get("/me", async (req, res) => {
-  console.log("🔍 Auth Header reçu :", req.headers.authorization);
-
+router.get("/me", authMiddleware, async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-
-    if (!token) {
-      return res.status(401).json({ message: "Non autorisé" });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select("-password");
-
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur introuvable" });
-    }
-
+    const user = await User.findById(req.user._id).populate("commune");
     res.status(200).json({ user });
   } catch (error) {
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
     res.status(401).json({ message: "Token invalide" });
   }
 });
 router.post("/reset-password", async (req, res) => {
   try {
     const { token, newPassword } = req.body;
+    console.log("Token reçu:", token);
 
     // Vérifie si l'utilisateur avec ce token existe
     const user = await User.findOne({ resetToken: token });
+    console.log(
+      "Utilisateur trouvé:",
+      user
+        ? {
+            email: user.email,
+            resetToken: user.resetToken,
+            resetTokenExpiry: user.resetTokenExpiry
+              ? new Date(user.resetTokenExpiry).toLocaleString()
+              : "Non défini",
+          }
+        : "Non"
+    );
 
     if (!user) {
+      console.log("Token invalide ou expiré");
       return res.status(400).json({ message: "Token invalide ou expiré." });
+    }
+
+    // Vérifier si le token n'est pas expiré
+    if (user.resetTokenExpiry && user.resetTokenExpiry < Date.now()) {
+      console.log("Token expiré");
+      return res.status(400).json({ message: "Token expiré." });
     }
 
     // Hacher le nouveau mot de passe
@@ -222,8 +291,10 @@ router.post("/reset-password", async (req, res) => {
 
     // Supprime le token après usage
     user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
     await user.save();
 
+    console.log("Mot de passe mis à jour avec succès");
     res.json({ message: "Mot de passe mis à jour avec succès." });
   } catch (error) {
     console.error(
@@ -237,7 +308,7 @@ router.post("/reset-password", async (req, res) => {
 // Route pour mettre à jour le profil utilisateur
 router.put("/update-profile", authMiddleware, async (req, res) => {
   try {
-    const { nom, prenom, email, photoUrl } = req.body;
+    const { nom, prenom, email, photoUrl, commune } = req.body;
     const userId = req.user._id;
 
     // Vérifier si l'email est déjà utilisé par un autre utilisateur
@@ -251,9 +322,11 @@ router.put("/update-profile", authMiddleware, async (req, res) => {
     // Mettre à jour l'utilisateur
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { nom, prenom, email, photoUrl },
+      { nom, prenom, email, photoUrl, commune },
       { new: true }
-    ).select("-password");
+    )
+      .populate("commune")
+      .select("-password");
 
     if (!updatedUser) {
       return res.status(404).json({ message: "Utilisateur non trouvé" });
@@ -309,24 +382,35 @@ router.post(
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
+    console.log("📧 Demande de réinitialisation pour l'email:", email);
 
     // Vérifier si l'utilisateur existe
     const user = await User.findOne({ email });
     if (!user) {
+      console.log("❌ Aucun utilisateur trouvé avec cet email");
       return res.status(404).json({
         message: "Aucun compte n'est associé à cet email.",
       });
     }
+    console.log("✅ Utilisateur trouvé:", user.email);
 
     // Générer un token de réinitialisation
     const resetToken = crypto.randomBytes(32).toString("hex");
+    console.log("🔑 Token généré:", resetToken);
+
     user.resetToken = resetToken;
     user.resetTokenExpiry = Date.now() + 3600000; // 1 heure
+    console.log(
+      "⏰ Token expirera le:",
+      new Date(user.resetTokenExpiry).toLocaleString()
+    );
 
     await user.save();
+    console.log("💾 Token sauvegardé dans la base de données");
 
     // Créer le lien de réinitialisation
     const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    console.log("🔗 Lien de réinitialisation:", resetUrl);
 
     // Envoyer l'email
     const transporter = nodemailer.createTransport({
@@ -370,6 +454,54 @@ router.post("/forgot-password", async (req, res) => {
       message:
         "Une erreur est survenue lors de l'envoi de l'email de réinitialisation.",
     });
+  }
+});
+
+// Route pour exporter les données personnelles
+router.get("/export-data", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+    const userData = user.toObject();
+
+    // Ajouter la date d'export
+    userData.dateExport = new Date().toISOString();
+
+    // Créer un fichier JSON avec les données
+    const fileName = `export_${user.email}_${Date.now()}.json`;
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+    res.json(userData);
+  } catch (error) {
+    console.error("Erreur lors de l'export des données:", error);
+    res.status(500).json({ message: "Erreur lors de l'export des données" });
+  }
+});
+
+// Route pour supprimer le compte
+router.delete("/delete-account", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    // Supprimer la photo de profil si elle existe
+    if (user.photoUrl && !user.photoUrl.startsWith("http")) {
+      const photoPath = path.join(__dirname, "..", user.photoUrl);
+      if (fs.existsSync(photoPath)) {
+        fs.unlinkSync(photoPath);
+      }
+    }
+
+    // Supprimer l'utilisateur
+    await User.findByIdAndDelete(req.user._id);
+
+    // Supprimer le cookie JWT
+    res.clearCookie("jwt");
+
+    res.status(200).json({ message: "Compte supprimé avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la suppression du compte:", error);
+    res
+      .status(500)
+      .json({ message: "Erreur lors de la suppression du compte" });
   }
 });
 

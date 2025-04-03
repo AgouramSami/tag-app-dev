@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import StatistiquesSatisfaction from "../components/StatistiquesSatisfaction";
 import "../styles/dashboard.css";
+
+const API_URL = "http://localhost:5000";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -10,25 +11,26 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          credentials: "include",
+        });
 
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+        if (!response.ok) {
+          throw new Error("Non authentifié");
+        }
 
-    axios
-      .get("http://localhost:5000/api/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setUser(res.data.user);
+        const data = await response.json();
+        setUser(data.user);
         setLoading(false);
-      })
-      .catch(() => {
-        sessionStorage.removeItem("token");
+      } catch (error) {
+        console.error("Erreur:", error);
         navigate("/login");
-      });
+      }
+    };
+
+    fetchUser();
   }, [navigate]);
 
   if (loading) return <p className="tag-loading-text">Chargement...</p>;

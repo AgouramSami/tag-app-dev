@@ -4,6 +4,7 @@ const Demande = require("../models/Demandes");
 const Commune = require("../models/Commune");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
+const cron = require("node-cron");
 
 // 📌 📤 Enregistrer une nouvelle demande avec fichiers
 router.post(
@@ -420,7 +421,7 @@ const supprimerDemandesRGPD = async () => {
 };
 
 // Planifier la tâche de suppression RGPD (exécution quotidienne)
-setInterval(supprimerDemandesRGPD, 24 * 60 * 60 * 1000);
+cron.schedule("0 0 * * *", supprimerDemandesRGPD);
 
 // 📊 Statistiques de satisfaction
 router.get("/stats/satisfaction", authMiddleware, async (req, res) => {

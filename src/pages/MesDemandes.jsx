@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import RGPDNotice from "../components/RGPDNotice";
 import CardDemande from "../components/CardDemande";
 import ConsulterDemande from "../components/ConsulterDemande";
 import SearchFilter from "../components/SearchFilter";
@@ -34,16 +33,8 @@ const MesDemandes = () => {
   useEffect(() => {
     const fetchDemandes = async () => {
       try {
-        const token = sessionStorage.getItem("token");
-        if (!token) {
-          navigate("/login");
-          return;
-        }
-
         const response = await fetch(`${API_URL}/api/demandes`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         });
 
         if (!response.ok) {
@@ -69,12 +60,9 @@ const MesDemandes = () => {
     }
 
     try {
-      const token = sessionStorage.getItem("token");
       const response = await fetch(`${API_URL}/api/demandes/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -92,23 +80,18 @@ const MesDemandes = () => {
   const handleConsultation = (demande) => {
     console.log("Consultation de la demande:", demande);
     if (demande && demande._id) {
-      // Si la demande est archivée, on l'affiche directement sans recharger
       if (demande.statut === "archivée") {
         console.log("Affichage direct d'une demande archivée");
         setSelectedDemande(demande);
         return;
       }
 
-      // Pour les autres statuts, on recharge la demande
       const fetchDemande = async () => {
         try {
-          const token = sessionStorage.getItem("token");
           const response = await fetch(
             `${API_URL}/api/demandes/${demande._id}`,
             {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+              credentials: "include",
             }
           );
 
@@ -116,7 +99,6 @@ const MesDemandes = () => {
             const data = await response.json();
             setSelectedDemande(data);
           } else {
-            // En cas d'erreur, on utilise la demande locale
             setSelectedDemande(demande);
           }
         } catch (error) {
@@ -141,13 +123,11 @@ const MesDemandes = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Vérification de la taille (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         setErreurFichier("Le fichier ne doit pas dépasser 10MB");
         return;
       }
 
-      // Vérification du type de fichier
       const typesAutorises = [
         "application/pdf",
         "image/jpeg",
@@ -174,7 +154,6 @@ const MesDemandes = () => {
     }
 
     try {
-      const token = sessionStorage.getItem("token");
       const formData = new FormData();
       formData.append("texte", reponse);
       formData.append("type", "demande");
@@ -193,9 +172,7 @@ const MesDemandes = () => {
         `${API_URL}/api/demandes/${selectedDemande._id}/message`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
           body: formData,
         }
       );
@@ -216,7 +193,6 @@ const MesDemandes = () => {
         );
       }
 
-      // Mettre à jour la demande avec le nouveau message
       const updatedDemande = {
         ...selectedDemande,
         messages: [...selectedDemande.messages, responseData.message],
@@ -253,14 +229,13 @@ const MesDemandes = () => {
     }
 
     try {
-      const token = sessionStorage.getItem("token");
       const response = await fetch(
         `${API_URL}/api/demandes/${demandeToClose._id}/cloturer`,
         {
           method: "PUT",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ note }),
         }
@@ -286,7 +261,6 @@ const MesDemandes = () => {
     }
   };
 
-  // Filtrage des demandes
   const demandesFiltrees = demandes.filter((demande) => {
     const matchSearch =
       demande.objet.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -361,7 +335,6 @@ const MesDemandes = () => {
               </p>
             </div>
 
-            {/* Modal de notation */}
             {showRatingModal && (
               <div className="rating-modal">
                 <div className="rating-modal-content">
@@ -401,7 +374,6 @@ const MesDemandes = () => {
               </div>
             )}
 
-            {/* Remplacer la section messages par le chat */}
             {selectedDemande.messages &&
               selectedDemande.messages.length > 0 && (
                 <div className="tag-chat-section">
@@ -409,11 +381,8 @@ const MesDemandes = () => {
                   <div className="tag-chat-container">
                     <div className="tag-chat-messages-wrapper">
                       {selectedDemande.messages.map((message, index) => {
-                        // Récupérer le rôle de l'utilisateur connecté
                         const userRole = sessionStorage.getItem("role");
 
-                        // Si l'utilisateur est un juriste, ses messages (estJuriste: true) sont à droite
-                        // Si l'utilisateur est un demandeur, ses messages (estJuriste: false) sont à droite
                         const shouldShowOnRight =
                           userRole === "juriste"
                             ? message.estJuriste
@@ -543,7 +512,6 @@ const MesDemandes = () => {
               />
             ))}
           </div>
-          <RGPDNotice />
         </>
       )}
     </div>

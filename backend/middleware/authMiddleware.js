@@ -3,7 +3,8 @@ const User = require("../models/User");
 
 // Middleware d'authentification
 const authMiddleware = async (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  // Vérifier le token dans les cookies ou dans le header Authorization
+  const token = req.cookies.jwt || req.headers.authorization?.split(" ")[1];
 
   if (!token) {
     return res.status(401).json({ message: "Accès non autorisé" });
@@ -17,6 +18,7 @@ const authMiddleware = async (req, res, next) => {
     }
     next();
   } catch (error) {
+    res.clearCookie("jwt");
     return res.status(401).json({ message: "Token invalide" });
   }
 };

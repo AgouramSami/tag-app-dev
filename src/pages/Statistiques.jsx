@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import StatistiquesSatisfaction from "../components/StatistiquesSatisfaction";
-import { useAuth } from "../context/AuthContext";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import "../styles/Statistiques.css";
 
+const API_URL = "http://localhost:5000";
+
 const Statistiques = () => {
-  const { token } = useAuth();
   const [stats, setStats] = useState({
     parCommune: [],
     parTheme: [],
@@ -20,56 +19,51 @@ const Statistiques = () => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
 
-        // Récupérer les statistiques de base
         const [
           communeRes,
           themeRes,
           satisfactionCommuneRes,
           satisfactionStrateRes,
         ] = await Promise.all([
-          axios.get("http://localhost:5000/api/stats/par-commune", config),
-          axios.get("http://localhost:5000/api/stats/par-theme", config),
-          axios.get(
-            "http://localhost:5000/api/stats/satisfaction-commune",
-            config
-          ),
-          axios.get(
-            "http://localhost:5000/api/stats/satisfaction-strate",
-            config
-          ),
+          fetch(`${API_URL}/api/stats/par-commune`, {
+            credentials: "include",
+          }).then((res) => res.json()),
+          fetch(`${API_URL}/api/stats/par-theme`, {
+            credentials: "include",
+          }).then((res) => res.json()),
+          fetch(`${API_URL}/api/stats/satisfaction-commune`, {
+            credentials: "include",
+          }).then((res) => res.json()),
+          fetch(`${API_URL}/api/stats/satisfaction-strate`, {
+            credentials: "include",
+          }).then((res) => res.json()),
         ]);
 
-        // Calculer les strates à partir des données de satisfaction
-        const strateData = satisfactionStrateRes.data.map((strate) => ({
+        const strateData = satisfactionStrateRes.map((strate) => ({
           strate: strate.strate,
           count: strate.totalDemandes,
         }));
 
         setStats({
-          parCommune: communeRes.data || [],
-          parTheme: themeRes.data || [],
-          satisfactionCommune: satisfactionCommuneRes.data || [],
-          satisfactionStrate: satisfactionStrateRes.data || [],
+          parCommune: communeRes || [],
+          parTheme: themeRes || [],
+          satisfactionCommune: satisfactionCommuneRes || [],
+          satisfactionStrate: satisfactionStrateRes || [],
           parStrate: strateData,
         });
 
         setError(null);
-      } catch (err) {
-        console.error("Erreur lors du chargement des statistiques:", err);
+      } catch (error) {
         setError("Erreur lors du chargement des statistiques");
+        console.error("Erreur:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchStats();
-  }, [token]);
+  }, []);
 
   if (loading) {
     return (
