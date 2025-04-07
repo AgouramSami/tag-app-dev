@@ -1,31 +1,46 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
+
+// Pages d'authentification
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
+// Pages des tableaux de bord
 import Dashboard from "./pages/Dashboard";
-import AdminPanel from "./pages/AdminPanel";
+import AdminDashboard from "./pages/AdminDashboard";
+import JuristeDashboard from "./pages/JuristeDashboard";
+
+// Pages de gestion des demandes
 import CreerDemande from "./pages/CreerDemande";
 import MesDemandes from "./pages/MesDemandes";
-import FAQ from "./pages/FAQ";
-import FAQArticle from "./pages/FAQArticle";
-import Profil from "./pages/Profil";
-import Header from "./components/Header";
-import ResetPassword from "./pages/ResetPassword";
-import JuristeDashboard from "./pages/JuristeDashboard";
 import JuristePanel from "./pages/JuristePanel";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminPanel from "./pages/AdminPanel";
+
+// Pages d'analyse et documentation
 import Statistiques from "./pages/Statistiques";
-import { useAuth } from "./context/AuthContext";
-import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
-import CookieBanner from "./components/CookieBanner";
+import FAQ from "./pages/FAQ";
+
+// Pages de profil et paramètres
+import Profil from "./pages/Profil";
 import ParametresRGPD from "./pages/ParametresRGPD";
+import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
+
+// Composants UI réutilisables
+import Header from "./components/Header";
+import CookieBanner from "./components/CookieBanner";
+
+// Contexte d'authentification
+import { useAuth } from "./context/AuthContext";
 
 function App() {
   const { isAuthenticated, checkAccess, getDefaultRoute } = useAuth();
 
-  // Liste des routes publiques
+  {
+    /* Routes publiques qui ne nécessitent pas d'authentification */
+  }
   const publicRoutes = [
     "/login",
     "/signup",
@@ -33,115 +48,158 @@ function App() {
     "/reset-password",
   ];
 
-  // Vérifie si la route actuelle est publique
+  {
+    /* Vérifie si la route actuelle est publique */
+  }
   const isPublicRoute = publicRoutes.some((route) =>
     window.location.pathname.startsWith(route)
   );
 
+  {
+    /* Composant pour protéger les routes */
+  }
+  const ProtectedRoute = ({ permissions, children }) => {
+    if (!isAuthenticated) return <Navigate to="/login" />;
+    if (permissions && !checkAccess(permissions))
+      return <Navigate to={getDefaultRoute()} />;
+    return children;
+  };
+
   return (
     <div className="tag-app-container">
+      {/* Affiche le header seulement si l'utilisateur est authentifié et la route n'est pas publique */}
       {isAuthenticated && !isPublicRoute && <Header />}
 
       <div style={{ paddingBottom: isPublicRoute ? "0" : "80px" }}>
         <Routes>
+          {/* Route racine avec redirection */}
           <Route
             path="/"
             element={
               <Navigate to={isAuthenticated ? getDefaultRoute() : "/login"} />
             }
           />
+
+          {/* Pages d'authentification */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+          {/* Pages du tableau de bord */}
           <Route
             path="/dashboard"
-            element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+            element={<ProtectedRoute>{<Dashboard />}</ProtectedRoute>}
           />
+
+          {/* Pages de gestion des demandes */}
           <Route
             path="/creer-demande"
             element={
-              checkAccess("user") ? (
+              <ProtectedRoute permissions="user">
                 <CreerDemande />
-              ) : (
-                <Navigate to={getDefaultRoute()} />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
             path="/mes-demandes"
             element={
-              checkAccess("user") ? (
+              <ProtectedRoute permissions="user">
                 <MesDemandes />
-              ) : (
-                <Navigate to={getDefaultRoute()} />
-              )
+              </ProtectedRoute>
             }
           />
+
+          {/* Pages publiques d'information */}
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/faq/:id" element={<FAQArticle />} />
+          <Route
+            path="/politique-confidentialite"
+            element={<PolitiqueConfidentialite />}
+          />
+
+          {/* Pages administrateur */}
           <Route
             path="/admin"
             element={
-              checkAccess("admin") ? (
+              <ProtectedRoute permissions="admin">
                 <AdminDashboard />
-              ) : (
-                <Navigate to={getDefaultRoute()} />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
             path="/admin/panel"
             element={
-              checkAccess("admin") ? (
+              <ProtectedRoute permissions="admin">
                 <AdminPanel />
-              ) : (
-                <Navigate to={getDefaultRoute()} />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
             path="/admin/statistiques"
             element={
-              checkAccess("admin") ? (
+              <ProtectedRoute permissions="admin">
                 <Statistiques />
-              ) : (
-                <Navigate to={getDefaultRoute()} />
-              )
+              </ProtectedRoute>
             }
           />
+
+          {/* Pages juriste */}
           <Route
             path="/juriste"
             element={
-              checkAccess("juriste") ? (
+              <ProtectedRoute permissions="juriste">
                 <JuristeDashboard />
-              ) : (
-                <Navigate to={getDefaultRoute()} />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
             path="/juriste/panel"
             element={
-              checkAccess("juriste") ? (
+              <ProtectedRoute permissions="juriste">
                 <JuristePanel />
-              ) : (
-                <Navigate to={getDefaultRoute()} />
-              )
+              </ProtectedRoute>
             }
           />
           <Route
-            path="/profil"
-            element={isAuthenticated ? <Profil /> : <Navigate to="/login" />}
+            path="/juriste/demandes"
+            element={
+              <ProtectedRoute permissions="juriste">
+                <JuristePanel />
+              </ProtectedRoute>
+            }
           />
           <Route
-            path="/politique-confidentialite"
-            element={<PolitiqueConfidentialite />}
+            path="/juriste/statistiques"
+            element={
+              <ProtectedRoute permissions="juriste">
+                <Statistiques />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Pages de profil et paramètres */}
+          <Route
+            path="/profil"
+            element={<ProtectedRoute>{<Profil />}</ProtectedRoute>}
           />
           <Route
             path="/parametres-rgpd"
+            element={<ProtectedRoute>{<ParametresRGPD />}</ProtectedRoute>}
+          />
+
+          {/* Route de redirection des statistiques */}
+          <Route
+            path="/statistiques"
             element={
-              isAuthenticated ? <ParametresRGPD /> : <Navigate to="/login" />
+              <ProtectedRoute>
+                {checkAccess("admin") ? (
+                  <Navigate to="/admin/statistiques" />
+                ) : checkAccess("juriste") ? (
+                  <Navigate to="/juriste/statistiques" />
+                ) : (
+                  <Navigate to={getDefaultRoute()} />
+                )}
+              </ProtectedRoute>
             }
           />
         </Routes>

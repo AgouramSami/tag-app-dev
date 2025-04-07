@@ -20,6 +20,8 @@ const JuristePanel = () => {
     const fetchDemandes = async () => {
       try {
         setIsLoading(true);
+        console.log("🔄 Début de la récupération des demandes...");
+
         const response = await fetch(`${API_URL}/api/demandes`, {
           credentials: "include",
           headers: {
@@ -36,9 +38,14 @@ const JuristePanel = () => {
         }
 
         const data = await response.json();
+        console.log("✅ Demandes reçues:", data);
         setDemandes(data);
       } catch (err) {
-        console.error("❌ Erreur:", err);
+        console.error("❌ Erreur détaillée:", {
+          message: err.message,
+          stack: err.stack,
+          name: err.name,
+        });
         setError(err.message);
       } finally {
         setIsLoading(false);

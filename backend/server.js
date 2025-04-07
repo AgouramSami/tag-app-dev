@@ -19,40 +19,52 @@ const { supprimerDemandesRGPD } = require("./routes/demandesRoutes");
 
 const app = express();
 
+// Configuration CORS plus sécurisée
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim()),
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  maxAge: 86400, // 24 heures
+};
+
 // Middleware
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN.split(","),
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
 app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// Middleware de logging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
 // Configuration des fichiers statiques
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-console.log("📁 Dossier uploads configuré:", path.join(__dirname, "uploads"));
-
-// Créer le dossier uploads s'il n'existe pas
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log("📁 Dossier uploads créé:", uploadsDir);
 }
-console.log("📁 Dossier uploads configuré:", uploadsDir);
+app.use("/uploads", express.static(uploadsDir));
 
-// Routes API
-app.use("/api/auth", authRoutes);
-console.log("🔐 Routes d'authentification chargées");
+// Routes API avec logging
+const routes = {
+  "/api/auth": authRoutes,
+  "/api/admin": adminRoutes,
+  "/api/communes": communeRoutes,
+  "/api/fonctions": fonctionRoutes,
+  "/api/demandes": demandeRoutes,
+  "/api/themes": themeRoutes,
+  "/api/strates": strateRoutes,
+  "/api/faqs": faqRoutes,
+  "/api/stats": require("./routes/statsRoutes"),
+};
 
-app.use("/api/admin", adminRoutes);
-app.use("/api/communes", communeRoutes);
-app.use("/api/fonctions", fonctionRoutes);
-app.use("/api/demandes", demandeRoutes);
-app.use("/api/themes", themeRoutes);
-app.use("/api/strates", strateRoutes);
-app.use("/api/faqs", faqRoutes);
-app.use("/api/stats", require("./routes/statsRoutes"));
+Object.entries(routes).forEach(([path, router]) => {
+  app.use(path, router);
+  console.log(`🛣️ Route configurée: ${path}`);
+});
 
 // Route de test pour les uploads
 app.post("/api/test-upload", (req, res) => {
@@ -60,23 +72,56 @@ app.post("/api/test-upload", (req, res) => {
   res.json({ message: "Route d'upload accessible" });
 });
 
-// Démarrer la tâche cron de suppression des demandes expirées
-supprimerDemandesExpirees.start();
-console.log("🕒 Tâche de suppression des demandes expirées planifiée");
+// Gestion des erreurs globales
+app.use((err, req, res, next) => {
+  console.error("❌ Erreur serveur:", err);
+  res.status(500).json({
+    message: "Une erreur est survenue sur le serveur",
+    error: process.env.NODE_ENV === "development" ? err.message : undefined,
+  });
+});
 
-// Connexion à MongoDB
+// Connexion à MongoDB avec gestion d'erreur améliorée
 mongoose
-  .connect(process.env.MONGO_URI, { dbName: "tag_db" })
-  .then(() => console.log("🟢 Connecté à MongoDB - tag_db"))
-  .catch((err) => console.error("🔴 Erreur MongoDB :", err));
+  .connect(process.env.MONGO_URI, {
+    dbName: "tag_db",
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+  })
+  .then(() => {
+    console.log("🟢 Connecté à MongoDB - tag_db");
+    // Démarrer la tâche cron de suppression des demandes expirées
+    supprimerDemandesExpirees.start();
+    console.log("🕒 Tâche de suppression des demandes expirées planifiée");
+  })
+  .catch((err) => {
+    console.error("🔴 Erreur MongoDB:", err);
+    process.exit(1);
+  });
 
 // Ne démarrer le serveur que si le fichier est exécuté directement
 if (require.main === module) {
-  const server = app.listen(process.env.PORT || 5000, () => {
-    console.log(`🚀 Serveur lancé sur le port ${process.env.PORT || 5000}`);
+  const PORT = process.env.PORT || 5000;
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 Serveur lancé sur le port ${PORT}`);
+    console.log(`🌐 URL: http://localhost:${PORT}`);
     console.log("📝 Routes disponibles:");
-    console.log("- POST /api/auth/upload-photo");
-    console.log("- POST /api/test-upload");
+    Object.keys(routes).forEach((route) => {
+      console.log(`- ${route}`);
+    });
+  });
+
+  // Gestion propre de l'arrêt du serveur
+  process.on("SIGTERM", () => {
+    console.log("SIGTERM reçu. Arrêt du serveur...");
+    server.close(() => {
+      console.log("Serveur arrêté");
+      mongoose.connection.close(false, () => {
+        console.log("Connexion MongoDB fermée");
+        process.exit(0);
+      });
+    });
   });
 }
 

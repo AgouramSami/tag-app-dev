@@ -378,6 +378,59 @@ router.post(
   }
 );
 
+// Route pour vérifier la validité du token
+router.get("/verify-reset-token/:token", async (req, res) => {
+  try {
+    console.log("Vérification du token:", req.params.token);
+
+    const user = await User.findOne({
+      resetToken: req.params.token,
+    });
+
+    console.log("Utilisateur trouvé:", user ? "Oui" : "Non");
+
+    if (!user) {
+      console.log("Token non trouvé dans la base de données");
+      return res.status(400).json({
+        message: "Token non trouvé",
+        valid: false,
+        reason: "not_found",
+      });
+    }
+
+    if (!user.resetTokenExpiry) {
+      console.log("Token sans date d'expiration");
+      return res.status(400).json({
+        message: "Token invalide",
+        valid: false,
+        reason: "invalid",
+      });
+    }
+
+    if (user.resetTokenExpiry < Date.now()) {
+      console.log("Token expiré");
+      return res.status(400).json({
+        message: "Token expiré",
+        valid: false,
+        reason: "expired",
+      });
+    }
+
+    console.log("Token valide");
+    res.json({
+      valid: true,
+      message: "Token valide",
+    });
+  } catch (error) {
+    console.error("Erreur lors de la vérification du token:", error);
+    res.status(500).json({
+      message: "Erreur serveur",
+      valid: false,
+      reason: "server_error",
+    });
+  }
+});
+
 // Route pour la réinitialisation du mot de passe
 router.post("/forgot-password", async (req, res) => {
   try {
@@ -392,25 +445,25 @@ router.post("/forgot-password", async (req, res) => {
         message: "Aucun compte n'est associé à cet email.",
       });
     }
-    console.log("✅ Utilisateur trouvé:", user.email);
 
     // Générer un token de réinitialisation
     const resetToken = crypto.randomBytes(32).toString("hex");
-    console.log("🔑 Token généré:", resetToken);
+    const resetTokenExpiry = Date.now() + 3600000; // 1 heure
 
+    // Mettre à jour l'utilisateur
     user.resetToken = resetToken;
-    user.resetTokenExpiry = Date.now() + 3600000; // 1 heure
+    user.resetTokenExpiry = resetTokenExpiry;
+    await user.save();
+
+    console.log("Token généré:", resetToken);
     console.log(
-      "⏰ Token expirera le:",
-      new Date(user.resetTokenExpiry).toLocaleString()
+      "Date d'expiration:",
+      new Date(resetTokenExpiry).toLocaleString()
     );
 
-    await user.save();
-    console.log("💾 Token sauvegardé dans la base de données");
-
     // Créer le lien de réinitialisation
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
-    console.log("🔗 Lien de réinitialisation:", resetUrl);
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    console.log("URL de réinitialisation:", resetUrl);
 
     // Envoyer l'email
     const transporter = nodemailer.createTransport({
@@ -441,6 +494,7 @@ router.post("/forgot-password", async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
+    console.log("Email envoyé avec succès");
 
     res.json({
       message: "Un email de réinitialisation a été envoyé à votre adresse.",

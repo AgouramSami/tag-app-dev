@@ -33,4 +33,17 @@ const adminMiddleware = (req, res, next) => {
   next();
 };
 
-module.exports = { authMiddleware, adminMiddleware };
+// Middleware d'autorisation pour les juristes et admins
+const juristeOrAdminMiddleware = (req, res, next) => {
+  if (
+    !req.user ||
+    (req.user.permissions !== "juriste" && req.user.permissions !== "admin")
+  ) {
+    return res
+      .status(403)
+      .json({ message: "Accès refusé. Juriste ou administrateur requis." });
+  }
+  next();
+};
+
+module.exports = { authMiddleware, adminMiddleware, juristeOrAdminMiddleware };

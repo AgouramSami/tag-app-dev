@@ -24,6 +24,28 @@ const CardDemande = ({
     setShowDeleteModal(false);
   };
 
+  // Fonction pour déterminer la classe CSS du statut
+  const getStatusClass = (status) => {
+    // Transformer le statut pour correspondre aux classes CSS
+    const statusLower = status.toLowerCase();
+
+    // Gérer les cas avec accents ou espaces
+    switch (statusLower) {
+      case "en attente":
+        return "en-attente";
+      case "en cours":
+        return "en-cours";
+      case "traitée":
+      case "traitee":
+        return "traitée";
+      case "archivée":
+      case "archivee":
+        return "archivée";
+      default:
+        return "";
+    }
+  };
+
   return (
     <div className="card-demande">
       <div className="demande-info">
@@ -39,7 +61,7 @@ const CardDemande = ({
 
         <div className="info-group">
           <label>Statut de la demande:</label>
-          <p className="statut-badge">{statut}</p>
+          <p className={`statut-badge ${getStatusClass(statut)}`}>{statut}</p>
         </div>
       </div>
 

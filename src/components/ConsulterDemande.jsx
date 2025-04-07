@@ -24,6 +24,13 @@ const ConsulterDemande = ({
     console.log("useEffect ConsulterDemande - demande:", demande);
     const fetchMessages = async () => {
       try {
+        // Vérifier si on a déjà les messages dans la demande
+        if (demande.messages && demande.messages.length > 0) {
+          console.log("Utilisation des messages existants dans la demande");
+          setMessages(demande.messages);
+          return;
+        }
+
         const response = await fetch(
           `${API_URL}/api/demandes/${demande._id}/messages`,
           {
@@ -33,9 +40,14 @@ const ConsulterDemande = ({
 
         if (response.ok) {
           const data = await response.json();
+          console.log("Messages récupérés via API:", data);
           setMessages(data.messages || []);
         } else {
-          console.log("⚠️ Utilisation des messages locaux");
+          console.warn(
+            "⚠️ Erreur lors de la récupération des messages:",
+            await response.text()
+          );
+          // Utiliser les messages de la demande si présents, sinon un tableau vide
           setMessages(demande.messages || []);
         }
       } catch (error) {
@@ -53,23 +65,50 @@ const ConsulterDemande = ({
 
   const fetchCommune = async () => {
     try {
+      // Vérifier si commune est un objet avec nom
+      if (
+        demande.commune &&
+        typeof demande.commune === "object" &&
+        demande.commune.nom
+      ) {
+        console.log(
+          "Utilisation de la commune déjà disponible:",
+          demande.commune
+        );
+        setCommune(demande.commune);
+        return;
+      }
+
+      // Vérifier si l'ID de la commune est valide
+      if (!demande.commune || typeof demande.commune !== "string") {
+        console.warn("ID de commune invalide:", demande.commune);
+        setCommune({ nom: "Commune non spécifiée" });
+        return;
+      }
+
+      console.log("Récupération de la commune avec ID:", demande.commune);
       const response = await fetch(
         `${API_URL}/api/communes/${demande.commune}`,
         {
           credentials: "include",
         }
       );
+
       if (response.ok) {
         const communeData = await response.json();
+        console.log("Commune récupérée:", communeData);
         setCommune(communeData);
       } else {
+        const errorText = await response.text();
         console.error(
           "Erreur lors de la récupération de la commune:",
-          await response.text()
+          errorText
         );
+        setCommune({ nom: "Commune non trouvée" });
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération des données:", error);
+      console.error("Erreur lors de la récupération de la commune:", error);
+      setCommune({ nom: "Erreur de chargement" });
     }
   };
 
@@ -103,10 +142,13 @@ const ConsulterDemande = ({
       );
 
       if (!response.ok) {
-        throw new Error("Erreur lors de l'envoi du message");
+        const errorText = await response.text();
+        console.error("Erreur réponse API:", errorText);
+        throw new Error(`Erreur lors de l'envoi du message: ${errorText}`);
       }
 
       const messageData = await response.json();
+      console.log("Message envoyé avec succès:", messageData);
       const nouveauMessage = messageData.message;
       setMessages((prevMessages) => [...prevMessages, nouveauMessage]);
       setMessage("");
@@ -251,21 +293,34 @@ const ConsulterDemande = ({
                       {message.piecesJointes &&
                         message.piecesJointes.length > 0 && (
                           <div className="tag-chat-attachments">
-                            {message.piecesJointes.map((file, fileIndex) => (
-                              <a
-                                key={fileIndex}
-                                href={`${API_URL}/uploads/${file.replace(
-                                  /^.*[\\/]/,
-                                  ""
-                                )}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="tag-chat-attachment-link"
-                              >
-                                <i className="fas fa-paperclip"></i>
-                                {file.replace(/^.*[\\/]/, "")}
-                              </a>
-                            ))}
+                            {message.piecesJointes.map((file, fileIndex) => {
+                              // Gérer différents formats de chemin de fichier
+                              const fileName =
+                                typeof file === "string"
+                                  ? file.replace(/^.*[\\/]/, "")
+                                  : file.nom || "fichier";
+
+                              // Construire l'URL du fichier
+                              const fileUrl =
+                                typeof file === "string"
+                                  ? `${API_URL}/uploads/${fileName}`
+                                  : `${API_URL}/uploads/${
+                                      file.chemin || fileName
+                                    }`;
+
+                              return (
+                                <a
+                                  key={fileIndex}
+                                  href={fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="tag-chat-attachment-link"
+                                >
+                                  <i className="fas fa-paperclip"></i>
+                                  {fileName}
+                                </a>
+                              );
+                            })}
                           </div>
                         )}
                     </div>
@@ -295,7 +350,7 @@ const ConsulterDemande = ({
             <div ref={messagesEndRef} />
           </div>
 
-          {demande.statut !== "clôturé" && (
+          {demande.statut !== "clôturé" && demande.statut !== "archivée" && (
             <form onSubmit={handleSubmit} className="tag-consulter-chat-form">
               <div className="tag-consulter-chat-input-container">
                 <textarea
@@ -346,6 +401,7 @@ const ConsulterDemande = ({
         </div>
 
         {demande.statut === "traitée" &&
+          demande.utilisateur &&
           demande.utilisateur._id === sessionStorage.getItem("userId") &&
           !showCloturer && (
             <button
@@ -372,28 +428,44 @@ ConsulterDemande.propTypes = {
   demande: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     objet: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
+    description: PropTypes.string,
     theme: PropTypes.string.isRequired,
-    commune: PropTypes.string.isRequired,
+    commune: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.shape({
+        _id: PropTypes.string,
+        nom: PropTypes.string,
+      }),
+    ]).isRequired,
     statut: PropTypes.string.isRequired,
     dateCreation: PropTypes.string.isRequired,
     fichiers: PropTypes.arrayOf(PropTypes.string),
     messages: PropTypes.arrayOf(
       PropTypes.shape({
         auteur: PropTypes.shape({
-          nom: PropTypes.string.isRequired,
-          prenom: PropTypes.string.isRequired,
-        }).isRequired,
+          nom: PropTypes.string,
+          prenom: PropTypes.string,
+        }),
         texte: PropTypes.string.isRequired,
         date: PropTypes.string.isRequired,
-        type: PropTypes.string.isRequired,
-        piecesJointes: PropTypes.arrayOf(PropTypes.string),
+        type: PropTypes.string,
+        estJuriste: PropTypes.bool,
+        piecesJointes: PropTypes.arrayOf(
+          PropTypes.oneOfType([
+            PropTypes.string,
+            PropTypes.shape({
+              nom: PropTypes.string,
+              chemin: PropTypes.string,
+            }),
+          ])
+        ),
       })
     ),
     utilisateur: PropTypes.shape({
-      nom: PropTypes.string.isRequired,
-      prenom: PropTypes.string.isRequired,
-    }).isRequired,
+      _id: PropTypes.string,
+      nom: PropTypes.string,
+      prenom: PropTypes.string,
+    }),
   }).isRequired,
   onSubmit: PropTypes.func.isRequired,
   onRetour: PropTypes.func.isRequired,

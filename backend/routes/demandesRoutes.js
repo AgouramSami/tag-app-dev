@@ -86,7 +86,7 @@ router.get("/", authMiddleware, async (req, res) => {
     });
 
     let filter = {};
-    if (req.user.permissions.includes("juriste")) {
+    if (req.user.permissions === "juriste") {
       console.log("✅ L'utilisateur a les permissions juriste");
       filter = {
         $or: [

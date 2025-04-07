@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "../styles/FAQ.css";
+import { useAuth } from "../context/AuthContext";
 
 const FAQModal = ({
   isOpen,
@@ -86,7 +87,7 @@ const FAQModal = ({
 };
 
 const FAQ = () => {
-  // États
+  // États du composant
   const [faqs, setFaqs] = useState([]);
   const [themes, setThemes] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,10 +101,12 @@ const FAQ = () => {
     question: "",
     reponse: "",
   });
-  const [user, setUser] = useState(null);
   const [openFaqId, setOpenFaqId] = useState(null);
 
-  // Configuration axios
+  // Contexte d'authentification
+  const { user, checkAccess } = useAuth();
+
+  // Configuration de l'API
   const api = axios.create({
     baseURL: "http://localhost:5000/api",
     headers: {
@@ -113,7 +116,7 @@ const FAQ = () => {
     withCredentials: true,
   });
 
-  // Fonctions API
+  // Récupération des thèmes
   const fetchThemes = async () => {
     try {
       const response = await api.get("/themes");
@@ -125,28 +128,7 @@ const FAQ = () => {
     }
   };
 
-  // Vérification de l'authentification
-  useEffect(() => {
-    fetchFaqs();
-    fetchThemes();
-  }, []);
-
-  // Vérification des permissions
-  const checkJuristPermissions = () => {
-    if (!user) {
-      setError("Utilisateur non connecté");
-      return false;
-    }
-    if (user.permissions !== "juriste") {
-      setError(
-        `Permissions insuffisantes. Permissions actuelles: ${user.permissions}`
-      );
-      return false;
-    }
-    return true;
-  };
-
-  // Fonctions API
+  // Récupération des FAQs
   const fetchFaqs = async () => {
     try {
       const response = await api.get("/faqs");
@@ -160,10 +142,25 @@ const FAQ = () => {
     }
   };
 
+  // Vérification des permissions de juriste
+  const checkJuristPermissions = () => {
+    if (!user) {
+      setError("Utilisateur non connecté");
+      return false;
+    }
+    if (!checkAccess("juriste")) {
+      setError(
+        "Permissions insuffisantes. Seuls les juristes peuvent modifier la FAQ."
+      );
+      return false;
+    }
+    return true;
+  };
+
+  // Gérer l'ajout d'une nouvelle FAQ
   const handleAddFaq = async () => {
     if (!checkJuristPermissions()) return;
 
-    // Validation des champs
     if (!newFaq.theme || !newFaq.question || !newFaq.reponse) {
       setError("Veuillez remplir tous les champs");
       return;
@@ -190,27 +187,32 @@ const FAQ = () => {
     }
   };
 
+  // Gérer la modification d'une FAQ existante
   const handleEditFaq = async () => {
     if (!checkJuristPermissions()) return;
 
+    if (
+      !editingFaq._id ||
+      !editingFaq.theme ||
+      !editingFaq.question ||
+      !editingFaq.reponse
+    ) {
+      setError("Veuillez remplir tous les champs");
+      return;
+    }
+
     try {
-      const faqData = {
+      const response = await api.put(`/faqs/${editingFaq._id}`, {
         theme: editingFaq.theme,
         question: editingFaq.question,
         reponse: editingFaq.reponse,
-        apiKey: import.meta.env.VITE_API_KEY,
-        userId: user._id,
-        auteur: user._id,
-        dateCreation: editingFaq.dateCreation,
-        dateModification: new Date().toISOString(),
-      };
-
-      const response = await api.put(`/faqs/${editingFaq._id}`, faqData);
+      });
 
       if (response.status === 200) {
         await fetchFaqs();
         setIsModalOpen(false);
         setEditingFaq(null);
+        setError("");
       }
     } catch (error) {
       console.error("Erreur lors de la modification de la FAQ :", error);
@@ -221,15 +223,17 @@ const FAQ = () => {
     }
   };
 
+  // Gérer la suppression d'une FAQ
   const handleDeleteFaq = async (id) => {
     if (!checkJuristPermissions()) return;
 
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cette FAQ ?")) {
       try {
-        await api.delete(`/faqs/${id}`, {
-          withCredentials: true,
-        });
-        await fetchFaqs();
+        const response = await api.delete(`/faqs/${id}`);
+        if (response.status === 200) {
+          await fetchFaqs();
+          setError("");
+        }
       } catch (error) {
         console.error("Erreur lors de la suppression de la FAQ :", error);
         setError(
@@ -240,82 +244,43 @@ const FAQ = () => {
     }
   };
 
-  // Filtrage des FAQ
-  const filteredFaqs = faqs.filter((faq) => {
-    const searchTerms = searchQuery
-      .toLowerCase()
-      .split(" ")
-      .filter((term) => term.length > 0);
-    const matchesSearch =
-      searchTerms.length === 0 ||
-      searchTerms.every(
-        (term) =>
-          faq.question.toLowerCase().includes(term) ||
-          faq.reponse.toLowerCase().includes(term) ||
-          faq.theme.toLowerCase().includes(term)
+  // Fonction pour afficher le bouton d'ajout de FAQ
+  const renderAddButton = () => {
+    if (checkAccess("juriste")) {
+      return (
+        <button
+          className="tag-faq-add-btn"
+          onClick={() => setIsModalOpen(true)}
+        >
+          <i className="fas fa-plus"></i> Ajouter une FAQ
+        </button>
       );
+    }
+    return null;
+  };
 
-    const matchesTheme = selectedTheme === "" || faq.theme === selectedTheme;
+  // Toggle pour ouvrir/fermer une FAQ
+  const toggleFaq = (id) => {
+    setOpenFaqId(openFaqId === id ? null : id);
+  };
+
+  // Effet pour charger les données initiales
+  useEffect(() => {
+    fetchFaqs();
+    fetchThemes();
+  }, []);
+
+  // Filtrage des FAQ par recherche et thème
+  const filteredFaqs = faqs.filter((faq) => {
+    const matchesSearch = searchQuery
+      ? faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        faq.reponse.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+
+    const matchesTheme = selectedTheme ? faq.theme === selectedTheme : true;
 
     return matchesSearch && matchesTheme;
   });
-
-  // Trier les résultats par pertinence
-  const sortedFaqs = [...filteredFaqs].sort((a, b) => {
-    // Si un thème est sélectionné, prioriser les FAQ de ce thème
-    if (selectedTheme) {
-      if (a.theme === selectedTheme && b.theme !== selectedTheme) return -1;
-      if (b.theme === selectedTheme && a.theme !== selectedTheme) return 1;
-    }
-
-    // Si une recherche est active, prioriser les correspondances dans les questions
-    if (searchQuery) {
-      const aMatchesQuestion = a.question
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const bMatchesQuestion = b.question
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      if (aMatchesQuestion && !bMatchesQuestion) return -1;
-      if (bMatchesQuestion && !aMatchesQuestion) return 1;
-    }
-
-    // Par défaut, trier par date de création (plus récent en premier)
-    return new Date(b.dateCreation) - new Date(a.dateCreation);
-  });
-
-  // Composants
-  const FAQItem = ({ faq }) => (
-    <div
-      className={`tag-faq-item ${openFaqId === faq._id ? "active" : ""}`}
-      onClick={() => setOpenFaqId(openFaqId === faq._id ? null : faq._id)}
-    >
-      <div className="tag-faq-header">
-        <h3 className="tag-faq-question">{faq.question}</h3>
-        <span className="tag-faq-theme-badge">{faq.theme || "Sans thème"}</span>
-      </div>
-      <p className="tag-faq-answer">{faq.reponse}</p>
-      {user?.permissions === "juriste" && (
-        <div className="tag-faq-actions" onClick={(e) => e.stopPropagation()}>
-          <button
-            className="tag-faq-edit-btn"
-            onClick={() => {
-              setEditingFaq(faq);
-              setIsModalOpen(true);
-            }}
-          >
-            <i className="fas fa-edit"></i>
-          </button>
-          <button
-            className="tag-faq-delete-btn"
-            onClick={() => handleDeleteFaq(faq._id)}
-          >
-            <i className="fas fa-trash"></i>
-          </button>
-        </div>
-      )}
-    </div>
-  );
 
   if (loading) {
     return <div className="tag-loading">Chargement...</div>;
@@ -323,24 +288,26 @@ const FAQ = () => {
 
   return (
     <div className="tag-faq-container">
-      <div className="tag-faq-header-container">
-        <h1 className="tag-faq-title">FAQ</h1>
-        {selectedTheme && (
-          <span className="tag-faq-theme-badge">{selectedTheme}</span>
-        )}
-      </div>
+      {/* Titre */}
+      <h1 className="tag-faq-title">Foire Aux Questions</h1>
+
+      {/* Message d'erreur */}
       {error && <div className="tag-error-message">{error}</div>}
 
+      {/* Conteneur de recherche et filtre */}
       <div className="tag-search-container">
+        {/* Barre de recherche */}
         <div className="tag-search-input-container">
           <input
-            type="text"
             className="tag-search-input"
-            placeholder="Rechercher dans les questions, réponses ou thèmes..."
+            type="text"
+            placeholder="Rechercher une FAQ..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+
+        {/* Filtre par thème */}
         <select
           className="tag-theme-filter"
           value={selectedTheme}
@@ -353,56 +320,98 @@ const FAQ = () => {
             </option>
           ))}
         </select>
-      </div>
 
-      {user?.permissions === "juriste" && (
-        <button
-          className="tag-faq-add-btn"
-          onClick={() => {
-            setEditingFaq(null);
-            setNewFaq({ theme: "", question: "", reponse: "" });
-            setIsModalOpen(true);
-          }}
-        >
-          <i className="fas fa-plus"></i> Ajouter une FAQ
-        </button>
-      )}
-
-      <div className="tag-faq-list">
-        {sortedFaqs.length === 0 ? (
-          <div className="tag-faq-no-results">
-            <i className="fas fa-search"></i>
-            <p>Aucune FAQ ne correspond à votre recherche</p>
-            {searchQuery && (
-              <button
-                className="tag-faq-reset-search"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedTheme("");
-                }}
-              >
-                Réinitialiser la recherche
-              </button>
-            )}
-          </div>
-        ) : (
-          sortedFaqs.map((faq) => <FAQItem key={faq._id} faq={faq} />)
+        {/* Bouton pour réinitialiser la recherche */}
+        {(searchQuery || selectedTheme) && (
+          <button
+            className="tag-faq-reset-search"
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedTheme("");
+            }}
+          >
+            <i className="fas fa-times"></i> Réinitialiser
+          </button>
         )}
       </div>
 
-      {isModalOpen && (
-        <FAQModal
-          isOpen={isModalOpen}
-          editingFaq={editingFaq}
-          newFaq={newFaq}
-          setEditingFaq={setEditingFaq}
-          setNewFaq={setNewFaq}
-          setIsModalOpen={setIsModalOpen}
-          handleEditFaq={handleEditFaq}
-          handleAddFaq={handleAddFaq}
-          themes={themes}
-        />
-      )}
+      {/* Bouton d'ajout (visible uniquement pour les juristes) */}
+      {renderAddButton()}
+
+      {/* Liste des FAQ */}
+      <div className="tag-faq-list">
+        {filteredFaqs.length > 0 ? (
+          filteredFaqs.map((faq) => (
+            <div
+              key={faq._id}
+              className={`tag-faq-item ${
+                openFaqId === faq._id ? "active" : ""
+              }`}
+            >
+              <div
+                className="tag-faq-header"
+                onClick={() => toggleFaq(faq._id)}
+              >
+                <h3 className="tag-faq-question">{faq.question}</h3>
+                <span className="tag-faq-theme-badge">{faq.theme}</span>
+              </div>
+              <div className="tag-faq-answer">{faq.reponse}</div>
+
+              {/* Actions pour les juristes */}
+              {checkAccess("juriste") && (
+                <div className="tag-faq-actions">
+                  <button
+                    className="tag-faq-edit-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingFaq(faq);
+                      setIsModalOpen(true);
+                    }}
+                  >
+                    <i className="fas fa-edit"></i>
+                  </button>
+                  <button
+                    className="tag-faq-delete-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteFaq(faq._id);
+                    }}
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="tag-faq-no-results">
+            <i className="fas fa-search"></i>
+            <p>Aucun résultat trouvé</p>
+            <button
+              className="tag-faq-reset-search"
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedTheme("");
+              }}
+            >
+              Réinitialiser la recherche
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Modal pour ajouter/éditer une FAQ */}
+      <FAQModal
+        isOpen={isModalOpen}
+        editingFaq={editingFaq}
+        newFaq={newFaq}
+        setEditingFaq={setEditingFaq}
+        setNewFaq={setNewFaq}
+        setIsModalOpen={setIsModalOpen}
+        handleEditFaq={handleEditFaq}
+        handleAddFaq={handleAddFaq}
+        themes={themes}
+      />
     </div>
   );
 };
