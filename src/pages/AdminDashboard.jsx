@@ -1,13 +1,21 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AdminDashboard.css";
+import "../styles/common/PageTitle.css";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="admin-dashboard-container">
-      <h1 className="dashboard-title">Tableau de bord Administrateur</h1>
+    <div className="page-container">
+      <div className="page-header">
+        <div className="header-content">
+          <h1 className="page-title">Tableau de bord Administrateur</h1>
+          <p className="page-subtitle">
+            Gérez les utilisateurs et supervisez l'application
+          </p>
+        </div>
+      </div>
 
       <div className="dashboard-grid">
         {/* Section Panel Admin */}

@@ -5,16 +5,6 @@ import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// Fonction utilitaire pour construire les URLs d'API correctement
-const buildApiUrl = (endpoint) => {
-  // Vérifie si l'URL se termine déjà par /api
-  if (API_URL.endsWith("/api")) {
-    return `${API_URL}${endpoint}`;
-  } else {
-    return `${API_URL}/api${endpoint}`;
-  }
-};
-
 const CreerDemande = () => {
   const [themes, setThemes] = useState([]);
   const [theme, setTheme] = useState("");
@@ -40,44 +30,41 @@ const CreerDemande = () => {
   const fetchFaqSuggestions = async (query) => {
     try {
       const res = await axios.get(
-        `${buildApiUrl(`/faqs/search?query=${query}`)}`,
-        { withCredentials: true }
+        `http://localhost:5000/api/faqs/search?query=${query}`
       );
       setFaqSuggestions(res.data);
     } catch (error) {
-      // Silencieux en cas d'erreur
+      console.error("Erreur lors du chargement des suggestions FAQ :", error);
     }
   };
 
   useEffect(() => {
     const fetchThemes = async () => {
       try {
-        const response = await fetch(buildApiUrl("/themes"), {
+        const response = await fetch(`${API_URL}/themes`, {
           credentials: "include",
         });
-
         if (!response.ok)
           throw new Error("Erreur lors du chargement des thèmes");
-
         const data = await response.json();
         setThemes(data);
       } catch (error) {
+        console.error("Erreur lors du chargement des thèmes:", error);
         setError("Erreur lors du chargement des thèmes");
       }
     };
 
     const fetchCommunes = async () => {
       try {
-        const response = await fetch(buildApiUrl("/communes"), {
+        const response = await fetch(`${API_URL}/communes`, {
           credentials: "include",
         });
-
         if (!response.ok)
           throw new Error("Erreur lors du chargement des communes");
-
         const data = await response.json();
         setCommunes(data);
       } catch (error) {
+        console.error("Erreur lors du chargement des communes:", error);
         setError("Erreur lors du chargement des communes");
       }
     };
@@ -95,12 +82,7 @@ const CreerDemande = () => {
   }, [objet]);
 
   const handleFileChange = (e) => {
-    const allowedTypes = [
-      "application/pdf",
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-    ];
+    const allowedTypes = ["application/pdf", "image/png", "image/jpeg"];
     const selectedFiles = Array.from(e.target.files);
     const validFiles = selectedFiles.filter((file) =>
       allowedTypes.includes(file.type)
@@ -117,24 +99,15 @@ const CreerDemande = () => {
     }
 
     setPiecesJointes([...piecesJointes, ...validFiles]);
-    // Réinitialiser l'input file pour permettre de sélectionner le même fichier à nouveau
-    e.target.value = null;
   };
 
-  const getFileIcon = (fileType) => {
-    if (fileType.includes("pdf")) return "fas fa-file-pdf";
-    if (fileType.includes("image")) return "fas fa-file-image";
-    return "fas fa-file";
+  const removeFile = (index) => {
+    setPiecesJointes(piecesJointes.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (!theme || !objet || !description || !selectedCommune) {
-      setError("Veuillez remplir tous les champs obligatoires");
-      return;
-    }
 
     try {
       const formData = new FormData();
@@ -149,7 +122,7 @@ const CreerDemande = () => {
         });
       }
 
-      const response = await fetch(buildApiUrl("/demandes"), {
+      const response = await fetch(`${API_URL}/demandes`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -164,6 +137,7 @@ const CreerDemande = () => {
 
       setShowModal(true);
     } catch (error) {
+      console.error("Erreur lors de la création de la demande:", error);
       setError(
         error.message ||
           "Une erreur est survenue lors de la création de la demande"
@@ -203,7 +177,7 @@ const CreerDemande = () => {
           >
             <option value="">Sélectionnez un thème</option>
             {themes.map((t) => (
-              <option key={t._id} value={t.nom}>
+              <option key={t._id} value={t._id}>
                 {t.nom}
               </option>
             ))}
@@ -228,7 +202,7 @@ const CreerDemande = () => {
               <ul className="tag-ul">
                 {faqSuggestions.map((faq) => (
                   <li
-                    key={faq._id}
+                    key={faq.id}
                     className="tag-faq-item"
                     onClick={() => handleFaqClick(faq)}
                   >
@@ -255,33 +229,27 @@ const CreerDemande = () => {
           <label className="tag-form-label">Pièces jointes</label>
           <div className="tag-pieces-jointes-container">
             <div className="tag-pieces-jointes-label">
-              {piecesJointes.length === 0 ? (
+              {piecesJointes.length > 0 ? (
+                piecesJointes.map((file, index) => (
+                  <div key={index} className="tag-piece-jointe">
+                    <span>{file.name}</span>
+                    <button
+                      type="button"
+                      className="tag-pieces-jointes-supprimer"
+                      onClick={() => removeFile(index)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                      </svg>
+                    </button>
+                  </div>
+                ))
+              ) : (
                 <div className="tag-pieces-jointes-empty">
                   Aucune pièce jointe
-                </div>
-              ) : (
-                <div className="tag-pieces-jointes-list">
-                  {piecesJointes.map((file, index) => (
-                    <div key={index} className="tag-piece-jointe">
-                      <span>{file.name}</span>
-                      <button
-                        type="button"
-                        className="tag-btn-supprimer-fichier"
-                        onClick={() => handleRemoveFile(index)}
-                        style={{
-                          cursor: "pointer",
-                          outline: "none",
-                          border: "none",
-                          background: "transparent",
-                        }}
-                      >
-                        <i
-                          className="fas fa-times"
-                          style={{ color: "#dc3545" }}
-                        ></i>
-                      </button>
-                    </div>
-                  ))}
                 </div>
               )}
             </div>

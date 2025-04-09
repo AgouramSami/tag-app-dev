@@ -4,7 +4,7 @@ import "../styles/Parametres.css";
 
 const API_URL = "http://localhost:5000";
 
-const Parametres = () => {
+const UserSettingsButton = () => {
   const { user, logout } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState(null);
@@ -141,4 +141,4 @@ const Parametres = () => {
   );
 };
 
-export default Parametres;
+export default UserSettingsButton;

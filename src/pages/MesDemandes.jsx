@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CardDemande from "../components/CardDemande";
-import ConsulterDemande from "../components/ConsulterDemande";
 import SearchFilter from "../components/SearchFilter";
 import "../styles/MesDemandes.css";
 
@@ -111,13 +110,6 @@ const MesDemandes = () => {
     } else {
       console.error("Demande invalide:", demande);
     }
-  };
-
-  const handleRetour = () => {
-    setSelectedDemande(null);
-    setReponse("");
-    setFichier(null);
-    setErreurFichier("");
   };
 
   const handleFileChange = (e) => {
@@ -280,25 +272,43 @@ const MesDemandes = () => {
 
   return (
     <div className="mes-demandes-container">
-      <div className="mes-demandes-header">
-        <h1 className="mes-demandes-title">Mes Demandes</h1>
-        <SearchFilter
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          filterValue={filtreStatut}
-          onFilterChange={setFiltreStatut}
-          filterOptions={filterOptions}
-          searchPlaceholder="Rechercher par objet ou numéro de demande..."
-          filterLabel="Statut"
-        />
-      </div>
+      {!selectedDemande ? (
+        <>
+          <div className="mes-demandes-header">
+            <h1 className="mes-demandes-title">Mes Demandes</h1>
+            <SearchFilter
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              filterValue={filtreStatut}
+              onFilterChange={setFiltreStatut}
+              filterOptions={filterOptions}
+              searchPlaceholder="Rechercher par objet ou numéro de demande..."
+              filterLabel="Statut"
+            />
+          </div>
 
-      {selectedDemande && selectedDemande._id ? (
+          <div className="mes-demandes-grid">
+            {demandesFiltrees.map((demande) => (
+              <CardDemande
+                key={demande._id}
+                numero={demande._id.slice(-6)}
+                date={new Date(demande.dateCreation).toLocaleDateString()}
+                objet={demande.objet}
+                theme={demande.theme}
+                statut={demande.statut}
+                onConsulter={() => handleConsultation(demande)}
+                onDelete={handleDelete}
+                id={demande._id}
+              />
+            ))}
+          </div>
+        </>
+      ) : (
         <div className="mes-demande-detail">
           <div className="mes-demande-actions">
             <button
               className="mes-demande-btn mes-demande-btn-voir"
-              onClick={() => navigate("/mes-demandes")}
+              onClick={() => setSelectedDemande(null)}
             >
               Retour aux demandes
             </button>
@@ -353,7 +363,7 @@ const MesDemandes = () => {
                   </div>
                   <div className="rating-modal-buttons">
                     <button
-                      className="cancel-btn"
+                      className="tag-button tag-button-secondary"
                       onClick={() => {
                         setShowRatingModal(false);
                         setNote(0);
@@ -363,7 +373,7 @@ const MesDemandes = () => {
                       Annuler
                     </button>
                     <button
-                      className="submit-btn"
+                      className="tag-button tag-button-primary"
                       onClick={handleRatingSubmit}
                       disabled={note === 0}
                     >
@@ -495,24 +505,6 @@ const MesDemandes = () => {
               )}
           </div>
         </div>
-      ) : (
-        <>
-          <div className="mes-demandes-grid">
-            {demandesFiltrees.map((demande) => (
-              <CardDemande
-                key={demande._id}
-                numero={demande._id.slice(-6)}
-                date={new Date(demande.dateCreation).toLocaleDateString()}
-                objet={demande.objet}
-                theme={demande.theme}
-                statut={demande.statut}
-                onConsulter={() => handleConsultation(demande)}
-                onDelete={handleDelete}
-                id={demande._id}
-              />
-            ))}
-          </div>
-        </>
       )}
     </div>
   );

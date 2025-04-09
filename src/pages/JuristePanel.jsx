@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CardDemande from "../components/CardDemande";
-import ConsulterDemande from "../components/ConsulterDemande";
+import ConsulterDemande from "./ConsulterDemande";
 import SearchFilter from "../components/SearchFilter";
 import "../styles/JuristePanel.css";
 

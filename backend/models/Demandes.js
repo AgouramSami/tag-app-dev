@@ -32,7 +32,11 @@ const DemandeSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  theme: { type: String, required: true },
+  theme: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Theme",
+    required: true,
+  },
   objet: { type: String, required: true },
   description: { type: String, required: true },
   fichiers: { type: [String], default: [] },

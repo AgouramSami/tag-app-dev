@@ -35,8 +35,6 @@ const insertFonctions = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
       dbName: "tag_db",
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
     });
     console.log("🟢 Connecté à MongoDB - tag_db");
 

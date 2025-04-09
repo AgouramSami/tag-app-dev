@@ -7,10 +7,7 @@ dotenv.config(); // Charge les variables d'environnement
 
 // 📌 Connexion à la base de données
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(async () => {
     console.log("📡 Connexion à MongoDB réussie !");
 
@@ -80,7 +77,7 @@ mongoose
         theme: "Droit des associations",
       },
       {
-        question: "Quels sont les droits d’un salarié en télétravail ?",
+        question: "Quels sont les droits d'un salarié en télétravail ?",
         reponse:
           "Les salariés ont droit à la prise en charge des frais professionnels et au respect du droit à la déconnexion.",
         auteur: juriste._id,

@@ -1,13 +1,21 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/JuristeDashboard.css";
+import "../styles/common/PageTitle.css";
 
 const JuristeDashboard = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="juriste-dashboard-container">
-      <h1 className="dashboard-title">Tableau de bord Juriste</h1>
+    <div className="page-container">
+      <div className="page-header">
+        <div className="header-content">
+          <h1 className="page-title">Tableau de bord Juriste</h1>
+          <p className="page-subtitle">
+            Gérez les demandes et accédez à vos outils de travail
+          </p>
+        </div>
+      </div>
 
       <div className="dashboard-grid">
         {/* Section Suivi des demandes */}

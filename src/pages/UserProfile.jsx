@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/Profil.css";
-import Parametres from "../components/Parametres";
-import { Container, Paper, Box, Typography, Button } from "@mui/material";
+import "../styles/common/PageTitle.css";
+import UserSettingsButton from "../components/UserSettingsButton";
 import defaultAvatarImg from "../assets/default-avatar.png";
 
 // Configuration de l'URL de l'API depuis les variables d'environnement
@@ -17,7 +17,7 @@ const buildApiUrl = (endpoint) => {
 };
 
 // Composant Profil pour gérer les informations de l'utilisateur
-const Profil = () => {
+const UserProfile = () => {
   // États et hooks
   const navigate = useNavigate();
   const { user, logout, updateUser } = useAuth();
@@ -316,216 +316,222 @@ const Profil = () => {
 
   // Rendu du composant
   return (
-    <Container maxWidth="md">
-      <Paper elevation={3} sx={{ p: 3, mt: 4 }}>
-        {/* Carte de profil principale */}
-        <div className="tag-profil-container">
-          <div className="tag-profil-card">
-            {/* Titre qui change selon le mode */}
-            <h1>{isEditing ? "Modifier le profil" : "Profil"}</h1>
+    <div className="page-container">
+      <div className="page-header">
+        <div className="header-content">
+          <h1 className="page-title">Mon Profil</h1>
+          <p className="page-subtitle">
+            Gérez vos informations personnelles et vos préférences
+          </p>
+        </div>
+      </div>
 
-            {/* En-tête avec photo et nom */}
-            <div className="tag-profil-header">
-              <div
-                className="tag-profil-image-container"
-                onClick={handleImageClick}
-              >
-                {/* Image de profil */}
-                <img
-                  src={getProfileImageUrl()}
-                  alt="Photo de profil"
-                  className="tag-profil-image"
-                  onError={(e) => {
-                    e.target.src = defaultAvatarImg;
-                  }}
-                />
+      <div className="profile-main-container">
+        <div className="profile-card">
+          {/* Carte de profil principale */}
+          <div className="tag-profil-container">
+            <div className="tag-profil-card">
+              {/* En-tête avec photo et nom */}
+              <div className="tag-profil-header">
+                <div
+                  className="tag-profil-image-container"
+                  onClick={handleImageClick}
+                >
+                  {/* Image de profil */}
+                  <img
+                    src={getProfileImageUrl()}
+                    alt="Photo de profil"
+                    className="tag-profil-image"
+                    onError={(e) => {
+                      e.target.src = defaultAvatarImg;
+                    }}
+                  />
 
-                {/* Bouton pour changer la photo (en mode édition) */}
-                {isEditing && (
-                  <div className="tag-profil-image-edit">
-                    <i className="fas fa-camera"></i>
-                    <span>Changer la photo</span>
-                  </div>
-                )}
+                  {/* Bouton pour changer la photo (en mode édition) */}
+                  {isEditing && (
+                    <div className="tag-profil-image-edit">
+                      <i className="fas fa-camera"></i>
+                      <span>Modifier</span>
+                    </div>
+                  )}
 
-                {/* Input caché pour sélectionner un fichier */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleImageChange}
-                  accept="image/*"
-                  style={{ display: "none" }}
-                />
+                  {/* Input caché pour sélectionner un fichier */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    style={{ display: "none" }}
+                  />
+                </div>
+
+                {/* Nom et prénom de l'utilisateur */}
+                <div className="tag-profil-username">{`${
+                  editedUser?.prenom || user.prenom
+                } ${editedUser?.nom || user.nom}`}</div>
+
+                {/* Fonction de l'utilisateur */}
+                <div className="tag-profil-handle">{fonctionName}</div>
               </div>
 
-              {/* Nom et prénom de l'utilisateur */}
-              <div className="tag-profil-username">{`${
-                editedUser?.prenom || user.prenom
-              } ${editedUser?.nom || user.nom}`}</div>
-
-              {/* Fonction de l'utilisateur */}
-              <div className="tag-profil-handle">{fonctionName}</div>
-            </div>
-
-            {/* Messages d'erreur et de succès */}
-            {error && <div className="tag-profil-error-message">{error}</div>}
-            {success && (
-              <div className="tag-profil-success-message">
-                Modifications enregistrées avec succès !
-              </div>
-            )}
-
-            {/* Informations du profil */}
-            <div className="tag-profil-info">
-              {!isEditing ? (
-                // Mode visualisation
-                <>
-                  <div className="tag-profil-info-group">
-                    <label>Email</label>
-                    <p>{user.email}</p>
-                  </div>
-                  <div className="tag-profil-info-group">
-                    <label>Commune</label>
-                    <p>{communeName || "Chargement..."}</p>
-                  </div>
-                  <div className="tag-profil-info-group">
-                    <label>Fonction</label>
-                    <p>{fonctionName || "Fonction non disponible"}</p>
-                  </div>
-                  <div className="tag-profil-info-group">
-                    <label>Permissions</label>
-                    <p>{user.permissions}</p>
-                  </div>
-                </>
-              ) : (
-                // Mode édition
-                <>
-                  <div className="tag-profil-info-group">
-                    <label>Nom</label>
-                    <input
-                      type="text"
-                      value={editedUser.nom}
-                      onChange={(e) =>
-                        setEditedUser({ ...editedUser, nom: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="tag-profil-info-group">
-                    <label>Prénom</label>
-                    <input
-                      type="text"
-                      value={editedUser.prenom}
-                      onChange={(e) =>
-                        setEditedUser({ ...editedUser, prenom: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="tag-profil-info-group">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      value={editedUser.email}
-                      onChange={(e) =>
-                        setEditedUser({ ...editedUser, email: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="tag-profil-info-group">
-                    <label>Commune</label>
-                    <select
-                      value={editedUser.commune}
-                      onChange={(e) =>
-                        setEditedUser({
-                          ...editedUser,
-                          commune: e.target.value,
-                        })
-                      }
-                      className="tag-profil-select"
-                    >
-                      {communes.length > 0 ? (
-                        communes.map((commune) => (
-                          <option key={commune._id} value={commune._id}>
-                            {commune.nom}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="">Chargement des communes...</option>
-                      )}
-                    </select>
-                  </div>
-                </>
+              {/* Messages d'erreur et de succès */}
+              {error && <div className="tag-profil-error-message">{error}</div>}
+              {success && (
+                <div className="tag-profil-success-message">
+                  Modifications enregistrées avec succès !
+                </div>
               )}
+
+              {/* Informations du profil */}
+              <div className="tag-profil-info">
+                {!isEditing ? (
+                  // Mode visualisation
+                  <>
+                    <div className="tag-profil-info-group">
+                      <label>Email</label>
+                      <p>{user.email}</p>
+                    </div>
+                    <div className="tag-profil-info-group">
+                      <label>Commune</label>
+                      <p>{communeName || "Chargement..."}</p>
+                    </div>
+                    <div className="tag-profil-info-group">
+                      <label>Fonction</label>
+                      <p>{fonctionName || "Fonction non disponible"}</p>
+                    </div>
+                    <div className="tag-profil-info-group">
+                      <label>Permissions</label>
+                      <p>{user.permissions}</p>
+                    </div>
+                  </>
+                ) : (
+                  // Mode édition
+                  <>
+                    <div className="tag-profil-info-group">
+                      <label>Nom</label>
+                      <input
+                        type="text"
+                        value={editedUser.nom}
+                        onChange={(e) =>
+                          setEditedUser({ ...editedUser, nom: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="tag-profil-info-group">
+                      <label>Prénom</label>
+                      <input
+                        type="text"
+                        value={editedUser.prenom}
+                        onChange={(e) =>
+                          setEditedUser({
+                            ...editedUser,
+                            prenom: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="tag-profil-info-group">
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        value={editedUser.email}
+                        onChange={(e) =>
+                          setEditedUser({
+                            ...editedUser,
+                            email: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="tag-profil-info-group">
+                      <label>Commune</label>
+                      <select
+                        value={editedUser.commune}
+                        onChange={(e) =>
+                          setEditedUser({
+                            ...editedUser,
+                            commune: e.target.value,
+                          })
+                        }
+                        className="tag-profil-select"
+                      >
+                        {communes.length > 0 ? (
+                          communes.map((commune) => (
+                            <option key={commune._id} value={commune._id}>
+                              {commune.nom}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="">Chargement des communes...</option>
+                        )}
+                      </select>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Boutons d'action */}
+              {!isEditing ? (
+                // Mode visualisation - menu
+                <div className="tag-profil-menu">
+                  <button className="tag-profil-edit-btn" onClick={handleEdit}>
+                    <i className="fas fa-edit"></i>
+                    Modifier le profil
+                  </button>
+                  <button
+                    className="tag-profil-parametres-btn"
+                    onClick={() => setShowParametres(!showParametres)}
+                  >
+                    <i className="fas fa-cog"></i>
+                    {showParametres ? "Masquer les paramètres" : "Paramètres"}
+                  </button>
+                  <button
+                    className="tag-profil-logout-btn"
+                    onClick={handleLogout}
+                  >
+                    <i className="fas fa-sign-out-alt"></i>
+                    Se déconnecter
+                  </button>
+                </div>
+              ) : (
+                // Mode édition - boutons de sauvegarde/annulation
+                <div className="tag-profil-actions">
+                  <button className="tag-profil-save-btn" onClick={handleSave}>
+                    Enregistrer
+                  </button>
+                  <button
+                    className="tag-profil-cancel-btn"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Annuler
+                  </button>
+                </div>
+              )}
+
+              {/* Paramètres RGPD et autres options */}
+              {showParametres && <UserSettingsButton />}
             </div>
+          </div>
 
-            {/* Boutons d'action */}
-            {!isEditing ? (
-              // Mode visualisation - menu
-              <div className="tag-profil-menu">
-                <button className="tag-profil-edit-btn" onClick={handleEdit}>
-                  <i className="fas fa-edit"></i>
-                  Modifier le profil
-                </button>
-                <button
-                  className="tag-profil-parametres-btn"
-                  onClick={() => setShowParametres(!showParametres)}
-                >
-                  <i className="fas fa-cog"></i>
-                  {showParametres ? "Masquer les paramètres" : "Paramètres"}
-                </button>
-                <button
-                  className="tag-profil-logout-btn"
-                  onClick={handleLogout}
-                >
-                  <i className="fas fa-sign-out-alt"></i>
-                  Se déconnecter
-                </button>
-              </div>
-            ) : (
-              // Mode édition - boutons de sauvegarde/annulation
-              <div className="tag-profil-actions">
-                <button className="tag-profil-save-btn" onClick={handleSave}>
-                  Enregistrer
-                </button>
-                <button
-                  className="tag-profil-cancel-btn"
-                  onClick={() => setIsEditing(false)}
-                >
-                  Annuler
-                </button>
-              </div>
-            )}
-
-            {/* Paramètres RGPD et autres options */}
-            {showParametres && <Parametres />}
+          {/* Liens utiles */}
+          <div className="profile-links-section">
+            <h2 className="profile-links-title">Liens utiles</h2>
+            <div className="profile-links-container">
+              <Link
+                to="/politique-confidentialite"
+                className="profile-link-button"
+              >
+                Politique de confidentialité
+              </Link>
+              <Link to="/parametres-rgpd" className="profile-link-button">
+                Paramètres RGPD
+              </Link>
+            </div>
           </div>
         </div>
-
-        {/* Liens utiles */}
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Liens utiles
-          </Typography>
-          <Button
-            variant="outlined"
-            color="primary"
-            component={Link}
-            to="/politique-confidentialite"
-            sx={{ mr: 2 }}
-          >
-            Politique de confidentialité
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            component={Link}
-            to="/parametres-rgpd"
-          >
-            Paramètres RGPD
-          </Button>
-        </Box>
-      </Paper>
-    </Container>
+      </div>
+    </div>
   );
 };
 
-export default Profil;
+export default UserProfile;

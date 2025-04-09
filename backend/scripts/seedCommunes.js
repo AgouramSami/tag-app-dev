@@ -84,8 +84,6 @@ const generateCommuneData = () => {
 mongoose
   .connect(process.env.MONGO_URI, {
     dbName: "tag_db",
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
   })
   .then(async () => {
     console.log("🟢 Connecté à MongoDB - tag_db");

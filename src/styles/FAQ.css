@@ -8,12 +8,42 @@
   box-sizing: border-box;
 }
 
-/* 🏷️ Titre */
+.tag-faq-header {
+  margin: 0px;
+  padding: 40px 20px;
+  color: white;
+}
+
+.header-content {
+  width: 100%;
+  margin: 0;
+}
+
 .tag-faq-title {
-  color: #04416d;
-  font-size: 2rem;
-  margin-bottom: 2rem;
-  text-align: center;
+  text-align: left;
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #033154;
+  position: relative;
+}
+
+.tag-faq-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  display: block;
+  width: 60px;
+  height: 3px;
+  background-color: #f3633f;
+  margin-top: 5px;
+}
+
+.tag-faq-subtitle {
+  text-align: left;
+  font-size: 16px;
+  color: #033154;
+  margin-top: 20px;
 }
 
 /* Conteneur de recherche et filtre */

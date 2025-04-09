@@ -38,6 +38,20 @@ router.get("/", async (req, res) => {
   }
 });
 
+// 📌 🔍 Récupérer un thème par son ID
+router.get("/:id", async (req, res) => {
+  try {
+    const theme = await Theme.findById(req.params.id);
+    if (!theme) {
+      return res.status(404).json({ message: "Thème non trouvé" });
+    }
+    res.status(200).json(theme);
+  } catch (error) {
+    console.error("Erreur lors de la récupération du thème :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
+
 // 📌 🔄 Désactiver un thème (Admin uniquement)
 router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {

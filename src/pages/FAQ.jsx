@@ -288,8 +288,14 @@ const FAQ = () => {
 
   return (
     <div className="tag-faq-container">
-      {/* Titre */}
-      <h1 className="tag-faq-title">Foire Aux Questions</h1>
+      <div className="tag-faq-header">
+        <div className="header-content">
+          <h1 className="tag-faq-title">Foire aux questions</h1>
+          <p className="tag-faq-subtitle">
+            Trouvez rapidement des réponses à vos questions
+          </p>
+        </div>
+      </div>
 
       {/* Message d'erreur */}
       {error && <div className="tag-error-message">{error}</div>}

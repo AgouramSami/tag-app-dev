@@ -89,6 +89,7 @@ const AdminPanel = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log("Données utilisateur à envoyer:", newUser);
       const response = await fetch(`${API_URL}/api/admin/create-user`, {
         method: "POST",
         credentials: "include",
@@ -99,7 +100,10 @@ const AdminPanel = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Erreur lors de la création de l'utilisateur");
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Erreur lors de la création de l'utilisateur"
+        );
       }
 
       const data = await response.json();

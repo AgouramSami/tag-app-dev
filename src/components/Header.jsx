@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/header.css";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const location = useLocation();
@@ -74,7 +75,7 @@ const Header = () => {
           </>
         )}
 
-        {/* Lien Créer demande au milieu */}
+        {/* Lien Créer demande */}
         {user?.permissions === "user" && (
           <NavLink to="/creer-demande" className="tag-nav-link">
             <i className="fas fa-plus-circle"></i>
@@ -92,6 +93,13 @@ const Header = () => {
           <span>Profil</span>
         </NavLink>
       </nav>
+      {!user && (
+        <div className="auth-buttons">
+          <Link to="/login" className="login-button">
+            Connexion
+          </Link>
+        </div>
+      )}
     </header>
   );
 };

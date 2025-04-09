@@ -12,91 +12,72 @@
 }
 
 .modal-content {
-  background: white;
-  padding: 30px;
+  background-color: white;
+  padding: 2rem;
   border-radius: 8px;
-  width: 90%;
+  width: 100%;
   max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.modal-header h2 {
-  margin: 0;
-  color: #033154;
-  font-size: 24px;
-}
-
-.close-modal {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #636e72;
-  cursor: pointer;
-  padding: 5px;
-  transition: color 0.3s ease;
-}
-
-.close-modal:hover {
-  color: #033154;
+.modal-content h2 {
+  margin-bottom: 1.5rem;
+  color: #333;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  color: #2d3436;
-  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #666;
 }
 
 .form-group input,
 .form-group select {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 16px;
-  color: #2d3436;
-  background: white;
-  transition: all 0.3s ease;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
 }
 
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #033154;
-  box-shadow: 0 0 0 3px rgba(3, 49, 84, 0.1);
+.error-message {
+  color: #dc3545;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #f8d7da;
+  border-radius: 4px;
 }
 
-.submit-btn {
-  width: 100%;
-  padding: 14px;
-  background-color: #033154;
-  color: white;
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.modal-actions button {
+  padding: 0.5rem 1rem;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 20px;
+  font-size: 1rem;
 }
 
-.submit-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+.modal-actions button[type="button"] {
+  background-color: #6c757d;
+  color: white;
+}
+
+.modal-actions button[type="submit"] {
+  background-color: #007bff;
+  color: white;
+}
+
+.modal-actions button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }

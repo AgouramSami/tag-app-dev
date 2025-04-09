@@ -1,14 +1,14 @@
-import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
 // Pages d'authentification
 import Login from "./pages/Login";
-import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
-// Pages des tableaux de bord
+import PrivacySettings from "./pages/PrivacySettings";
+
+// Pages des tableaux de bord/accueil
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import JuristeDashboard from "./pages/JuristeDashboard";
@@ -19,13 +19,13 @@ import MesDemandes from "./pages/MesDemandes";
 import JuristePanel from "./pages/JuristePanel";
 import AdminPanel from "./pages/AdminPanel";
 
-// Pages d'analyse et documentation
+// Pages d'analyse et faq
 import Statistiques from "./pages/Statistiques";
 import FAQ from "./pages/FAQ";
 
 // Pages de profil et paramètres
-import Profil from "./pages/Profil";
-import ParametresRGPD from "./pages/ParametresRGPD";
+import UserProfile from "./pages/UserProfile";
+// Politique de confidentialité
 import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
 
 // Composants UI réutilisables
@@ -41,12 +41,7 @@ function App() {
   {
     /* Routes publiques qui ne nécessitent pas d'authentification */
   }
-  const publicRoutes = [
-    "/login",
-    "/signup",
-    "/forgot-password",
-    "/reset-password",
-  ];
+  const publicRoutes = ["/login", "/forgot-password", "/reset-password"];
 
   {
     /* Vérifie si la route actuelle est publique */
@@ -82,7 +77,6 @@ function App() {
 
           {/* Pages d'authentification */}
           <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
 
@@ -178,27 +172,15 @@ function App() {
           />
 
           {/* Pages de profil et paramètres */}
-          <Route
-            path="/profil"
-            element={<ProtectedRoute>{<Profil />}</ProtectedRoute>}
-          />
-          <Route
-            path="/parametres-rgpd"
-            element={<ProtectedRoute>{<ParametresRGPD />}</ProtectedRoute>}
-          />
+          <Route path="/profil" element={<UserProfile />} />
+          <Route path="/parametres-rgpd" element={<PrivacySettings />} />
 
           {/* Route de redirection des statistiques */}
           <Route
             path="/statistiques"
             element={
-              <ProtectedRoute>
-                {checkAccess("admin") ? (
-                  <Navigate to="/admin/statistiques" />
-                ) : checkAccess("juriste") ? (
-                  <Navigate to="/juriste/statistiques" />
-                ) : (
-                  <Navigate to={getDefaultRoute()} />
-                )}
+              <ProtectedRoute permissions={["juriste"]}>
+                <Statistiques />
               </ProtectedRoute>
             }
           />

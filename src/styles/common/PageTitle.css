@@ -1,0 +1,68 @@
+/* 🎯 Style commun pour les conteneurs de page */
+.page-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 50px;
+  box-sizing: border-box;
+}
+
+/* 🎯 Style commun pour les titres de pages */
+.page-header {
+  margin: 0px;
+  padding: 40px 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header-content {
+  width: 100%;
+  margin: 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-title {
+  text-align: left;
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #033154;
+  position: relative;
+}
+
+.page-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  display: block;
+  width: 60px;
+  height: 3px;
+  background-color: #f3633f;
+  margin-top: 5px;
+}
+
+.page-subtitle {
+  text-align: left;
+  font-size: 16px;
+  color: #033154;
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .page-container {
+    padding: 20px;
+  }
+
+  .page-header {
+    padding: 20px 10px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+  }
+}
