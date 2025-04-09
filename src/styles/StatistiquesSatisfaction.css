@@ -1,1 +1,150 @@
- 
+.tag-stats-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tag-stats-title {
+  color: #002b45;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+  text-align: center;
+}
+
+.tag-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.tag-stats-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tag-theme-title {
+  color: #002b45;
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f3633f;
+}
+
+.tag-stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tag-stats-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.tag-stats-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.tag-stats-value {
+  font-weight: 600;
+  color: #002b45;
+}
+
+.tag-stars-distribution {
+  margin-top: 1.5rem;
+}
+
+.tag-stars-distribution h4 {
+  color: #002b45;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.tag-star-bar {
+  display: grid;
+  grid-template-columns: 100px 1fr 50px;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.tag-star-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.tag-star-bar-container {
+  height: 12px;
+  background-color: #f0f0f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tag-star-bar-fill {
+  height: 100%;
+  background-color: #f3633f;
+  transition: width 0.3s ease;
+}
+
+.tag-star-count {
+  font-size: 0.9rem;
+  color: #002b45;
+  font-weight: 600;
+  text-align: right;
+}
+
+.tag-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.tag-error {
+  text-align: center;
+  padding: 2rem;
+  color: #dc3545;
+}
+
+.tag-no-data {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .tag-stats-container {
+    padding: 1rem;
+  }
+
+  .tag-stats-title {
+    font-size: 1.5rem;
+  }
+
+  .tag-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tag-stats-card {
+    padding: 1rem;
+  }
+
+  .tag-star-bar {
+    gap: 0.5rem;
+  }
+
+  .tag-star-label {
+    min-width: 60px;
+    font-size: 0.8rem;
+  }
+
+  .tag-star-count {
+    min-width: 30px;
+    font-size: 0.9rem;
+  }
+}
