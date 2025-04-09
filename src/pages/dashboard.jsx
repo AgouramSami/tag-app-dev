@@ -1,17 +1,37 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Statistiques from "./Statistiques";
+import StatistiquesSatisfaction from "../components/StatistiquesSatisfaction";
 import "../styles/dashboard.css";
-import { useAuth } from "../context/AuthContext";
+
+const API_URL = "http://localhost:5000";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(false);
-  }, []);
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error("Non authentifié");
+        }
+
+        const data = await response.json();
+        setUser(data.user);
+        setLoading(false);
+      } catch (error) {
+        console.error("Erreur:", error);
+        navigate("/login");
+      }
+    };
+
+    fetchUser();
+  }, [navigate]);
 
   if (loading) return <p className="tag-loading-text">Chargement...</p>;
 
@@ -30,10 +50,10 @@ const Dashboard = () => {
         .
       </p>
 
-      {/* Dashboard spécifique selon le rôle */}
+      {/* 🔥 Dashboard spécifique selon le rôle */}
       {user.permissions === "admin" && (
         <div className="tag-admin-dashboard">
-          <Statistiques />
+          <StatistiquesSatisfaction />
         </div>
       )}
 

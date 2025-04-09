@@ -464,8 +464,8 @@ router.get("/stats/satisfaction", authMiddleware, async (req, res) => {
       },
       {
         $group: {
-          _id: "$theme",
-          nom: { $first: "$themeDetails.nom" },
+          _id: "$themeDetails.nom",
+          theme: { $first: "$themeDetails.nom" },
           totalDemandes: { $sum: 1 },
           noteMoyenne: { $avg: "$note" },
           note1: { $sum: { $cond: [{ $eq: ["$note", 1] }, 1, 0] } },
@@ -478,7 +478,7 @@ router.get("/stats/satisfaction", authMiddleware, async (req, res) => {
       {
         $project: {
           _id: 0,
-          theme: "$nom",
+          theme: 1,
           totalDemandes: 1,
           noteMoyenne: { $round: ["$noteMoyenne", 2] },
           distribution: {
@@ -532,85 +532,6 @@ router.put("/:id/statut", authMiddleware, async (req, res) => {
     res.json({ message: "Statut mis à jour avec succès", demande });
   } catch (error) {
     console.error("❌ Erreur lors de la mise à jour du statut :", error);
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-});
-
-// 📊 Statistiques de satisfaction par strate
-router.get("/stats/satisfaction/strate", authMiddleware, async (req, res) => {
-  try {
-    console.log(
-      "🔍 Début du calcul des statistiques de satisfaction par strate"
-    );
-    console.log("👤 Utilisateur:", req.user);
-
-    if (!req.user || !req.user.permissions.includes("juriste")) {
-      console.log("❌ Accès refusé - Permissions insuffisantes");
-      return res.status(403).json({ message: "Accès non autorisé" });
-    }
-
-    const stats = await Demande.aggregate([
-      {
-        $match: {
-          statut: "archivée",
-          note: { $exists: true, $ne: null },
-        },
-      },
-      {
-        $lookup: {
-          from: "communes",
-          localField: "commune",
-          foreignField: "_id",
-          as: "communeDetails",
-        },
-      },
-      {
-        $unwind: "$communeDetails",
-      },
-      {
-        $group: {
-          _id: "$communeDetails.strate",
-          strate: { $first: "$communeDetails.strate" },
-          totalDemandes: { $sum: 1 },
-          noteMoyenne: { $avg: "$note" },
-          note1: { $sum: { $cond: [{ $eq: ["$note", 1] }, 1, 0] } },
-          note2: { $sum: { $cond: [{ $eq: ["$note", 2] }, 1, 0] } },
-          note3: { $sum: { $cond: [{ $eq: ["$note", 3] }, 1, 0] } },
-          note4: { $sum: { $cond: [{ $eq: ["$note", 4] }, 1, 0] } },
-          note5: { $sum: { $cond: [{ $eq: ["$note", 5] }, 1, 0] } },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          strate: 1,
-          totalDemandes: 1,
-          noteMoyenne: { $round: ["$noteMoyenne", 2] },
-          distribution: {
-            1: "$note1",
-            2: "$note2",
-            3: "$note3",
-            4: "$note4",
-            5: "$note5",
-          },
-        },
-      },
-      {
-        $sort: { strate: 1 },
-      },
-    ]);
-
-    console.log(
-      "✅ Statistiques par strate calculées avec succès:",
-      JSON.stringify(stats, null, 2)
-    );
-    res.json(stats);
-  } catch (error) {
-    console.error(
-      "❌ Erreur détaillée lors du calcul des statistiques par strate:",
-      error
-    );
-    console.error("Stack trace:", error.stack);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });

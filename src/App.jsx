@@ -1,3 +1,4 @@
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
@@ -5,7 +6,7 @@ import "./App.css";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-
+import UserProfile from "./pages/UserProfile";
 import PrivacySettings from "./pages/PrivacySettings";
 
 // Pages des tableaux de bord/accueil
@@ -24,8 +25,6 @@ import Statistiques from "./pages/Statistiques";
 import FAQ from "./pages/FAQ";
 
 // Pages de profil et paramètres
-import UserProfile from "./pages/UserProfile";
-// Politique de confidentialité
 import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
 
 // Composants UI réutilisables
@@ -179,8 +178,14 @@ function App() {
           <Route
             path="/statistiques"
             element={
-              <ProtectedRoute permissions={["juriste"]}>
-                <Statistiques />
+              <ProtectedRoute>
+                {checkAccess("admin") ? (
+                  <Navigate to="/admin/statistiques" />
+                ) : checkAccess("juriste") ? (
+                  <Navigate to="/juriste/statistiques" />
+                ) : (
+                  <Navigate to={getDefaultRoute()} />
+                )}
               </ProtectedRoute>
             }
           />
